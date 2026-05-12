@@ -332,6 +332,7 @@ async function createHost() {
     _hosts.sort((a, b) => a.name.localeCompare(b.name));
     document.getElementById('newHostName').value = '';
     document.getElementById('newHostSlug').value = '';
+    _newHostSlugAutoFollow = true;  // ready for the next host
     setStatus('newHostStatus', 'Created.', 'ok');
     renderHostsList();
   } catch (e) {
@@ -545,6 +546,25 @@ function closeConfirm(ok) {
   m._onOk = null;
 }
 
+/* ── Slug auto-follow (new-host form only) ─────────────────
+ *  As the admin types the Name, mirror it into Slug via slugify().
+ *  If they manually edit Slug, stop following so their override
+ *  is preserved. Clearing the Slug field resumes following.
+ *  The edit-host form intentionally does NOT auto-follow — renaming
+ *  the host shouldn't silently break existing bookmarks. */
+let _newHostSlugAutoFollow = true;
+function wireSlugAutoFollow() {
+  const nameInput = document.getElementById('newHostName');
+  const slugInput = document.getElementById('newHostSlug');
+  if (!nameInput || !slugInput) return;
+  nameInput.addEventListener('input', () => {
+    if (_newHostSlugAutoFollow) slugInput.value = slugify(nameInput.value);
+  });
+  slugInput.addEventListener('input', () => {
+    _newHostSlugAutoFollow = (slugInput.value === '');
+  });
+}
+
 /* ── Init ─────────────────────────────────── */
 async function init() {
   document.title = 'RackTime Admin';
@@ -567,6 +587,7 @@ async function init() {
     return;
   }
   document.getElementById('adminMain').classList.remove('hidden');
+  wireSlugAutoFollow();
   try { await loadAll(); }
   catch (e) {
     setStatus('newHostStatus', 'Load failed: ' + e.message, 'err');
