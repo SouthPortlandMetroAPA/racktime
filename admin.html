@@ -563,6 +563,12 @@ function wireSlugAutoFollow() {
   slugInput.addEventListener('input', () => {
     _newHostSlugAutoFollow = (slugInput.value === '');
   });
+  // Enter on either field submits the form (matches the Create button).
+  const onEnter = (ev) => {
+    if (ev.key === 'Enter') { ev.preventDefault(); createHost(); }
+  };
+  nameInput.addEventListener('keydown', onEnter);
+  slugInput.addEventListener('keydown', onEnter);
 }
 
 /* ── Init ─────────────────────────────────── */
