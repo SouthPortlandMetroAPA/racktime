@@ -51,7 +51,7 @@
   }
   .crumb:hover { color: var(--text); }
 
-  /* ── Directory: host cards ─────────────────────────────────── */
+  /* Host cards (directory) */
   .hosts {
     display: grid; gap: 12px;
     grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -71,7 +71,7 @@
   .host-name { font-size: 1.06rem; font-weight: 800; line-height: 1.3; }
   .host-meta { font-size: 0.82rem; color: var(--muted); margin-top: 4px; font-weight: 600; }
 
-  /* ── Host page: schedule cards ────────────────────────────── */
+  /* Host header (on host page) */
   .host-header {
     background: var(--card);
     border: 1px solid var(--border);
@@ -82,8 +82,9 @@
   .host-header h2 { font-size: 1.4rem; font-weight: 900; letter-spacing: -0.01em; }
   .host-header .sub { font-size: 0.82rem; color: var(--muted); margin-top: 2px; font-weight: 600; }
 
-  .schedules { display: grid; gap: 10px; }
-  .sched-card {
+  /* Division cards (on host page) */
+  .divs { display: grid; gap: 10px; }
+  .div-card {
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: var(--radius);
@@ -93,27 +94,39 @@
     text-decoration: none; color: var(--text);
     transition: box-shadow 0.18s ease;
   }
-  .sched-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.06); }
-  .sched-icon {
+  .div-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.06); }
+  .div-num {
     flex: 0 0 auto;
-    width: 38px; height: 38px;
+    min-width: 42px;
+    padding: 6px 10px;
+    border-radius: 8px;
     background: rgba(0,49,161,0.08);
     color: var(--spm-accent);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
+    font-weight: 800;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
   }
-  .sched-icon svg { width: 18px; height: 18px; }
-  .sched-text { flex: 1; min-width: 0; }
-  .sched-label { font-weight: 700; line-height: 1.35; word-break: break-word; }
-  .sched-meta { font-size: 0.76rem; color: var(--muted); margin-top: 2px; font-weight: 600; }
-  .sched-go {
+  .div-text { flex: 1; min-width: 0; }
+  .div-name { font-weight: 800; line-height: 1.35; word-break: break-word; }
+  .div-meta { font-size: 0.78rem; color: var(--muted); margin-top: 2px; font-weight: 600; }
+  .div-go {
     flex: 0 0 auto;
-    width: 26px; height: 26px;
+    width: 24px; height: 24px;
     display: flex; align-items: center; justify-content: center;
     color: var(--muted);
   }
+  .div-card.no-pdf .div-num {
+    background: rgba(245,158,11,0.12); color: #b45309;
+  }
+  .div-no-pdf {
+    font-size: 0.74rem; font-weight: 700;
+    color: #b45309;
+    padding: 2px 8px;
+    border-radius: var(--pill);
+    background: rgba(245,158,11,0.12);
+  }
 
-  /* ── PDF viewer page ────────────────────────────────────── */
+  /* PDF viewer page */
   .viewer-actions {
     display: flex; gap: 8px; flex-wrap: wrap;
     margin-bottom: 12px;
@@ -140,7 +153,7 @@
     font-weight: 600; margin: 4px 4px 8px;
   }
 
-  /* ── Empty state ───────────────────────────────────────── */
+  /* Empty state */
   .empty {
     text-align: center;
     padding: 40px 20px;
@@ -153,7 +166,7 @@
   .empty-title { font-size: 1rem; font-weight: 800; color: var(--text); margin-bottom: 4px; }
   .empty-msg   { font-size: 0.88rem; line-height: 1.5; max-width: 380px; margin: 0 auto; }
 
-  /* ── Update overlay ───────────────────────────────────── */
+  /* Update overlay */
   .update-overlay {
     position: fixed; inset: 0;
     background: rgba(10,20,40,0.72); z-index: 9999;
@@ -199,23 +212,13 @@ const HEADERS_READ = { apikey: SB_ANON, Authorization: 'Bearer ' + SB_ANON, 'Acc
 const HEADERS_APA  = { apikey: SB_ANON, Authorization: 'Bearer ' + SB_ANON, 'Accept-Profile': 'apa_core' };
 
 let _hosts = [];
-let _schedules = [];
+let _divisions = [];
+let _hostDivisions = [];
 let _versionMismatch = false;
 
 /* ── Util ───────────────────────────────────── */
-function esc(s) {
-  return String(s == null ? '' : s)
-    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-}
-function pdfUrl(path) {
-  return SB_URL + '/storage/v1/object/public/' + BUCKET + '/' + path.split('/').map(encodeURIComponent).join('/');
-}
-function fmtRelative(ts) {
-  if (!ts) return '';
-  const d = new Date(ts);
-  return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
-}
+function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
+function pdfPublicUrl(path) { return SB_URL + '/storage/v1/object/public/' + BUCKET + '/' + path.split('/').map(encodeURIComponent).join('/'); }
 
 /* ── Auto-update ────────────────────────────── */
 async function checkVersion() {
@@ -224,8 +227,7 @@ async function checkVersion() {
     const r = await fetch(SB_URL + '/rest/v1/apps?app_name=eq.' + APP_NAME + '&select=version', { headers: HEADERS_APA });
     if (!r.ok) return;
     const d = await r.json();
-    if (!d || !d.length) return;
-    if (d[0].version && d[0].version !== window.APP_VERSION) {
+    if (d && d[0] && d[0].version && d[0].version !== window.APP_VERSION) {
       _versionMismatch = true;
       document.getElementById('updateOverlay').classList.add('shown');
       pollForDeploy(d[0].version);
@@ -236,9 +238,8 @@ function pollForDeploy(target) {
   setTimeout(async () => {
     try {
       const r = await fetch('version.js?_=' + Date.now());
-      if (r.ok) {
-        const text = await r.text();
-        if (text.indexOf("APP_VERSION = '" + target + "'") !== -1) { location.reload(true); return; }
+      if (r.ok && (await r.text()).indexOf("APP_VERSION = '" + target + "'") !== -1) {
+        location.reload(true); return;
       }
     } catch (_) {}
     pollForDeploy(target);
@@ -246,38 +247,37 @@ function pollForDeploy(target) {
 }
 
 /* ── Supabase ───────────────────────────────── */
-async function sb(method, path, body) {
+async function sb(method, path) {
   const r = await fetch(SB_URL + '/rest/v1/' + path, { method, headers: HEADERS_READ });
   if (!r.ok) throw new Error('Supabase ' + r.status + ': ' + (await r.text()).substring(0, 300));
   return r.json();
 }
 async function loadAll() {
-  _hosts = await sb('GET', 'hosts?archived_at=is.null&order=name.asc');
-  _schedules = await sb('GET', 'schedules?order=created_at.desc');
-  _hosts = _hosts || [];
-  _schedules = _schedules || [];
+  _hosts          = await sb('GET', 'hosts?archived_at=is.null&order=name.asc') || [];
+  _divisions      = await sb('GET', 'divisions?order=number.asc') || [];
+  _hostDivisions  = await sb('GET', 'host_divisions?select=host_id,division_id') || [];
 }
 
 /* ── Routing ────────────────────────────────── */
 function parseRoute() {
   const p = new URLSearchParams(location.search);
   const host = p.get('host');
-  const pdfId = p.get('pdf');
-  if (host && pdfId) return { view: 'pdf', host, pdfId: parseInt(pdfId, 10) };
+  const divId = p.get('div');
+  if (host && divId) return { view: 'pdf',  host, divId: parseInt(divId, 10) };
   if (host)          return { view: 'host', host };
   return { view: 'root' };
 }
 function setRoute(state) {
   const url = new URL(location.href);
-  ['host', 'pdf'].forEach(k => url.searchParams.delete(k));
+  ['host','div','pdf'].forEach(k => url.searchParams.delete(k));
   if (state.view === 'host' || state.view === 'pdf') url.searchParams.set('host', state.host);
-  if (state.view === 'pdf')                          url.searchParams.set('pdf', String(state.pdfId));
+  if (state.view === 'pdf') url.searchParams.set('div', String(state.divId));
   history.pushState(null, '', url);
 }
 window.addEventListener('popstate', () => render());
 function goRoot() { setRoute({ view: 'root' }); render(); }
 function goHost(slug) { setRoute({ view: 'host', host: slug }); render(); }
-function goPdf(slug, pdfId) { setRoute({ view: 'pdf', host: slug, pdfId }); render(); }
+function goPdf(slug, divId) { setRoute({ view: 'pdf', host: slug, divId }); render(); }
 
 /* ── Render entry ───────────────────────────── */
 function render() {
@@ -285,7 +285,7 @@ function render() {
   const root = document.getElementById('viewRoot');
   if (r.view === 'root') return renderRoot(root);
   if (r.view === 'host') return renderHost(root, r.host);
-  if (r.view === 'pdf')  return renderPdf(root, r.host, r.pdfId);
+  if (r.view === 'pdf')  return renderPdf(root, r.host, r.divId);
 }
 
 /* ── Directory ──────────────────────────────── */
@@ -296,24 +296,24 @@ function renderRoot(root) {
     root.innerHTML = '<div class="empty">'
       + '<span class="empty-emoji">\u{1F3B1}</span>'
       + '<div class="empty-title">No hosts yet</div>'
-      + '<div class="empty-msg">An admin needs to add the first host location with their schedules.</div>'
+      + '<div class="empty-msg">An admin needs to upload some division PDFs.</div>'
       + '</div>';
     return;
   }
   const countByHost = new Map();
-  for (const s of _schedules) countByHost.set(s.host_id, (countByHost.get(s.host_id) || 0) + 1);
+  for (const hd of _hostDivisions) countByHost.set(hd.host_id, (countByHost.get(hd.host_id) || 0) + 1);
   root.innerHTML = '<div class="hosts">'
     + _hosts.map(h => {
         const n = countByHost.get(h.id) || 0;
         return '<a class="host-card" onclick="event.preventDefault();goHost(\'' + esc(h.slug) + '\')" href="?host=' + encodeURIComponent(h.slug) + '">'
           + '<div class="host-name">' + esc(h.name) + '</div>'
-          + '<div class="host-meta">' + n + ' schedule' + (n === 1 ? '' : 's') + '</div>'
+          + '<div class="host-meta">' + n + ' division' + (n === 1 ? '' : 's') + '</div>'
           + '</a>';
       }).join('')
     + '</div>';
 }
 
-/* ── Host page ─────────────────────────────── */
+/* ── Host page (divisions) ─────────────────── */
 function renderHost(root, slug) {
   const h = _hosts.find(x => x.slug === slug);
   if (!h) {
@@ -325,59 +325,79 @@ function renderHost(root, slug) {
   }
   document.title = 'RackTime — ' + h.name;
   document.getElementById('subline').textContent = h.name;
-  const items = _schedules.filter(s => s.host_id === h.id);
-  const schedHtml = items.length
-    ? '<div class="schedules">' + items.map(s => {
-        const label = s.label || filenameOnly(s.pdf_path);
-        return '<a class="sched-card" onclick="event.preventDefault();goPdf(\'' + esc(slug) + '\',' + s.id + ')" href="?host=' + encodeURIComponent(slug) + '&pdf=' + s.id + '">'
-          + '<div class="sched-icon">' + svgFile() + '</div>'
-          + '<div class="sched-text">'
-          +   '<div class="sched-label">' + esc(label) + '</div>'
-          +   '<div class="sched-meta">Uploaded ' + esc(fmtRelative(s.created_at)) + '</div>'
+  const divIds = new Set(_hostDivisions.filter(hd => hd.host_id === h.id).map(hd => hd.division_id));
+  const divs = _divisions.filter(d => divIds.has(d.id))
+                         .sort((a, b) => a.number.localeCompare(b.number));
+  const divsHtml = divs.length
+    ? '<div class="divs">' + divs.map(d => {
+        const hasPdf = !!d.pdf_path;
+        const dt = [d.day_of_play, d.start_time].filter(Boolean).join(' · ');
+        if (!hasPdf) {
+          return '<div class="div-card no-pdf" style="cursor:default">'
+            + '<div class="div-num">' + esc(d.number) + '</div>'
+            + '<div class="div-text">'
+            +   '<div class="div-name">' + esc(d.name) + '</div>'
+            +   '<div class="div-meta">' + esc(dt || '') + '</div>'
+            + '</div>'
+            + '<span class="div-no-pdf">No PDF yet</span>'
+            + '</div>';
+        }
+        return '<a class="div-card" onclick="event.preventDefault();goPdf(\'' + esc(slug) + '\',' + d.id + ')" href="?host=' + encodeURIComponent(slug) + '&div=' + d.id + '">'
+          + '<div class="div-num">' + esc(d.number) + '</div>'
+          + '<div class="div-text">'
+          +   '<div class="div-name">' + esc(d.name) + '</div>'
+          +   '<div class="div-meta">' + esc(dt || '') + '</div>'
           + '</div>'
-          + '<div class="sched-go">' + svgChevron() + '</div>'
+          + '<div class="div-go">' + svgChevron() + '</div>'
           + '</a>';
       }).join('') + '</div>'
     : '<div class="empty"><span class="empty-emoji">\u{1F4C4}</span>'
-      + '<div class="empty-title">No schedules yet</div>'
-      + '<div class="empty-msg">An admin hasn’t uploaded any PDFs for this host yet.</div></div>';
+      + '<div class="empty-title">No divisions yet</div>'
+      + '<div class="empty-msg">This host hasn’t been linked to any divisions yet.</div></div>';
   root.innerHTML = '<a class="crumb" onclick="goRoot()">← All hosts</a>'
     + '<div class="host-header"><h2>' + esc(h.name) + '</h2>'
-    +   '<div class="sub">' + items.length + ' schedule' + (items.length === 1 ? '' : 's') + ' available</div>'
+    +   '<div class="sub">' + divs.length + ' division' + (divs.length === 1 ? '' : 's') + ' play' + (divs.length === 1 ? 's' : '') + ' here</div>'
     + '</div>'
-    + schedHtml;
-}
-function filenameOnly(path) {
-  const f = (path || '').split('/').pop() || 'schedule';
-  return f.replace(/\.pdf$/i, '');
+    + divsHtml;
 }
 
 /* ── PDF view ──────────────────────────────── */
-function renderPdf(root, slug, pdfId) {
+function renderPdf(root, slug, divId) {
   const h = _hosts.find(x => x.slug === slug);
-  const s = _schedules.find(x => x.id === pdfId && (!h || x.host_id === h.id));
-  if (!h || !s) {
+  const d = _divisions.find(x => x.id === divId);
+  const linked = h && d && _hostDivisions.some(hd => hd.host_id === h.id && hd.division_id === d.id);
+  if (!h || !d || !linked) {
     document.title = 'RackTime — Not found';
     root.innerHTML = '<a class="crumb" onclick="goRoot()">← All hosts</a>'
       + '<div class="empty"><div class="empty-title">Schedule not found</div></div>';
     return;
   }
-  const label = s.label || filenameOnly(s.pdf_path);
-  document.title = 'RackTime — ' + h.name + ' · ' + label;
+  const title = d.number + ' — ' + d.name;
+  const dt = [d.day_of_play, d.start_time].filter(Boolean).join(' · ');
+  document.title = 'RackTime — ' + h.name + ' · ' + title;
   document.getElementById('subline').textContent = h.name;
-  const url = pdfUrl(s.pdf_path);
+  if (!d.pdf_path) {
+    root.innerHTML = '<a class="crumb" onclick="goHost(\'' + esc(slug) + '\')">← ' + esc(h.name) + '</a>'
+      + '<div class="host-header"><h2>' + esc(title) + '</h2>'
+      +   (dt ? '<div class="sub">' + esc(dt) + '</div>' : '')
+      + '</div>'
+      + '<div class="empty"><div class="empty-title">PDF not uploaded yet</div></div>';
+    return;
+  }
+  const url = pdfPublicUrl(d.pdf_path);
   root.innerHTML = '<a class="crumb" onclick="goHost(\'' + esc(slug) + '\')">← ' + esc(h.name) + '</a>'
-    + '<div class="host-header"><h2>' + esc(label) + '</h2></div>'
+    + '<div class="host-header"><h2>' + esc(title) + '</h2>'
+    +   (dt ? '<div class="sub">' + esc(dt) + '</div>' : '')
+    + '</div>'
     + '<div class="viewer-actions">'
     +   '<a class="btn" href="' + esc(url) + '" target="_blank" rel="noopener">Open PDF in new tab</a>'
     +   '<a class="btn outline" href="' + esc(url) + '" download>Download</a>'
     + '</div>'
-    + '<iframe class="pdf-frame" src="' + esc(url) + '#toolbar=1&navpanes=0&view=FitH" title="' + esc(label) + '"></iframe>'
+    + '<iframe class="pdf-frame" src="' + esc(url) + '#toolbar=1&navpanes=0&view=FitH" title="' + esc(title) + '"></iframe>'
     + '<p class="pdf-label">If the PDF doesn’t load above, use the Open or Download buttons.</p>';
 }
 
 /* ── SVGs ──────────────────────────────────── */
-function svgFile()    { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>'; }
 function svgChevron() { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="9 18 15 12 9 6"/></svg>'; }
 
 /* ── Init ──────────────────────────────────── */
@@ -393,7 +413,7 @@ async function init() {
     return;
   }
   render();
-  // Light polling so newly-uploaded schedules appear without manual refresh
+  // Refresh data periodically so new uploads/links appear
   setInterval(async () => {
     if (document.hidden) return;
     try { await loadAll(); render(); } catch (_) {}

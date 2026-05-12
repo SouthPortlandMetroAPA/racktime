@@ -39,10 +39,13 @@
     background: rgba(255,255,255,0.18); border: 1.5px solid rgba(255,255,255,0.5); color: #fff;
   }
 
-  .wrap { max-width: 1000px; margin: 0 auto; padding: 18px 16px 0; }
-
-  .crumb { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-weight: 600; cursor: pointer; font-size: 0.86rem; margin-bottom: 12px; }
-  .crumb:hover { color: var(--text); }
+  /* Tabs */
+  .tabs { background: #fff; border-bottom: 1px solid var(--border); display: flex; flex-wrap: wrap; padding: 0 16px; gap: 0; }
+  .tab { padding: 12px 18px; border: 0; background: transparent; cursor: pointer; font-size: 0.9rem; font-weight: 700; color: var(--muted); border-bottom: 3px solid transparent; font-family: inherit; }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--spm-accent); border-bottom-color: var(--spm-accent); }
+  .panel { display: none; padding: 18px 16px 0; max-width: 1080px; margin: 0 auto; }
+  .panel.active { display: block; }
 
   .card {
     background: var(--card);
@@ -57,15 +60,16 @@
     text-transform: uppercase; letter-spacing: 0.08em;
     margin-bottom: 12px;
   }
+
   .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 8px; }
   .row > * { flex: 1; min-width: 140px; }
   label { display: block; font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
-  input[type="text"], input[type="file"], textarea {
+  input[type="text"], input[type="file"], textarea, select {
     width: 100%; border: 1.5px solid var(--border-strong); border-radius: 10px;
     padding: 9px 11px; font-family: inherit; font-size: 0.9rem;
     background: #fff;
   }
-  input:focus, textarea:focus { outline: none; border-color: var(--spm-accent); }
+  input:focus, textarea:focus, select:focus { outline: none; border-color: var(--spm-accent); }
 
   .btn { padding: 9px 18px; border-radius: var(--pill); font-size: 0.85rem; font-weight: 700; border: 0; cursor: pointer; font-family: inherit; }
   .btn-primary { background: var(--spm-accent); color: #fff; }
@@ -85,12 +89,7 @@
   .table-wrap { overflow-x: auto; }
   code { background: #eef1f7; padding: 2px 6px; border-radius: 4px; font-size: 0.86em; color: var(--spm-accent); font-weight: 700; }
 
-  .status-line {
-    padding: 9px 13px; border-radius: 10px;
-    font-size: 0.84rem; font-weight: 600;
-    margin: 6px 0;
-    display: none;
-  }
+  .status-line { padding: 9px 13px; border-radius: 10px; font-size: 0.84rem; font-weight: 600; margin: 6px 0; display: none; }
   .status-line.shown { display: block; }
   .status-line.ok       { background: rgba(22,163,74,0.10); color: var(--success); }
   .status-line.err      { background: rgba(220,38,38,0.10); color: var(--danger); }
@@ -99,6 +98,65 @@
   .key-gate { text-align: center; padding: 60px 20px; }
   .key-gate .card { max-width: 440px; margin: 0 auto; text-align: center; }
   .hint { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+
+  /* Drop zone */
+  .drop-zone {
+    border: 2px dashed var(--border-strong);
+    border-radius: var(--radius);
+    padding: 28px 20px;
+    text-align: center;
+    background: #fafafa;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .drop-zone:hover, .drop-zone.dragover {
+    border-color: var(--spm-accent);
+    background: rgba(0,49,161,0.04);
+  }
+  .drop-zone .dz-emoji { font-size: 2rem; display: block; margin-bottom: 6px; }
+  .drop-zone .dz-title { font-weight: 800; }
+  .drop-zone .dz-sub   { color: var(--muted); font-size: 0.84rem; margin-top: 2px; }
+
+  /* Preview tiles */
+  .preview-list { display: grid; gap: 10px; margin-top: 14px; }
+  .pv {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 12px 14px;
+    border-left: 4px solid var(--border-strong);
+  }
+  .pv.parsing  { border-left-color: var(--warn); }
+  .pv.ready    { border-left-color: var(--success); }
+  .pv.error    { border-left-color: var(--danger); }
+  .pv.saved    { border-left-color: var(--success); background: #f0fdf4; }
+  .pv-head { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .pv-filename { font-weight: 700; font-size: 0.9rem; flex: 1; min-width: 200px; word-break: break-all; }
+  .pv-status { font-size: 0.74rem; font-weight: 700; padding: 2px 8px; border-radius: var(--pill); }
+  .pv-status.parsing { background: rgba(245,158,11,0.15); color: #b45309; }
+  .pv-status.ready   { background: rgba(22,163,74,0.15); color: var(--success); }
+  .pv-status.error   { background: rgba(220,38,38,0.15); color: var(--danger); }
+  .pv-status.saved   { background: rgba(22,163,74,0.15); color: var(--success); }
+  .pv-row { margin-top: 8px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .pv-field { flex: 1; min-width: 180px; }
+  .pv-field label { font-size: 0.65rem; }
+  .pv-field input[type="text"] { padding: 6px 9px; font-size: 0.86rem; }
+  .pv-hosts {
+    display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px;
+  }
+  .host-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 0.74rem; font-weight: 700;
+    padding: 3px 9px; border-radius: var(--pill);
+    background: #f3f4f6; color: var(--muted);
+    border: 1px solid transparent;
+  }
+  .host-chip.existing { background: rgba(22,163,74,0.10); color: var(--success); border-color: rgba(22,163,74,0.25); }
+  .host-chip.new      { background: rgba(245,158,11,0.12); color: #b45309; border-color: rgba(245,158,11,0.30); }
+  .host-chip .x {
+    cursor: pointer; opacity: 0.5; font-weight: 700;
+    margin-left: 2px;
+  }
+  .host-chip .x:hover { opacity: 1; }
+  .pv-error { color: var(--danger); font-size: 0.82rem; margin-top: 6px; }
 
   /* Modal */
   .modal { position: fixed; inset: 0; background: rgba(10,20,40,0.6); z-index: 200; display: none; align-items: center; justify-content: center; padding: 16px; }
@@ -129,7 +187,7 @@
 
 <div class="header">
   <div class="admin-badge">ADMIN</div>
-  <h1>RackTime <span class="subpage" id="appSubpage">Hosts</span></h1>
+  <h1>RackTime <span class="subpage" id="appSubpage">Upload</span></h1>
 </div>
 
 <div id="keyGate" class="key-gate hidden">
@@ -139,9 +197,48 @@
   </div>
 </div>
 
-<div id="adminMain" class="wrap hidden">
-  <!-- View 1: hosts list -->
-  <div id="hostsView">
+<div id="adminMain" class="hidden">
+  <div class="tabs">
+    <button class="tab active" data-tab="upload">Upload</button>
+    <button class="tab" data-tab="divisions">Divisions</button>
+    <button class="tab" data-tab="hosts">Hosts</button>
+  </div>
+
+  <!-- ─── Upload tab ─── -->
+  <div class="panel active" id="tab-upload">
+    <div class="card">
+      <h2>Bulk upload division PDFs</h2>
+      <p class="hint" style="margin-bottom:10px">Drop one or more APA division-schedule PDFs. Each is parsed for the division number/name (from the header) and the unique host venues (from the team list at the bottom). New divisions and hosts are auto-created; existing ones are matched and linked.</p>
+      <div class="drop-zone" id="dropZone" onclick="document.getElementById('pdfPicker').click()">
+        <span class="dz-emoji">\u{1F4C4}</span>
+        <div class="dz-title">Tap to choose PDFs or drop them here</div>
+        <div class="dz-sub">Multiple at once is fine</div>
+      </div>
+      <input type="file" id="pdfPicker" accept="application/pdf" multiple style="display:none">
+      <div class="actions" style="margin-top:14px;justify-content:space-between">
+        <button class="btn btn-outline" onclick="clearPreview()">Clear</button>
+        <button class="btn btn-primary" id="saveAllBtn" onclick="saveAllUploads()" disabled>Save all</button>
+      </div>
+      <div id="uploadStatus" class="status-line"></div>
+      <div class="preview-list" id="previewList"></div>
+    </div>
+  </div>
+
+  <!-- ─── Divisions tab ─── -->
+  <div class="panel" id="tab-divisions">
+    <div class="card">
+      <h2>Divisions</h2>
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>#</th><th>Name</th><th>Day · Time</th><th>Hosts</th><th>PDF</th><th></th></tr></thead>
+          <tbody id="divisionsBody"><tr><td colspan="6" class="hint">Loading&hellip;</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── Hosts tab ─── -->
+  <div class="panel" id="tab-hosts">
     <div class="card">
       <h2>New host</h2>
       <div class="row">
@@ -149,55 +246,15 @@
         <div style="flex:2"><label for="newHostSlug">Slug</label><input type="text" id="newHostSlug" placeholder="89-sports-bar"></div>
         <div style="flex:0 0 auto"><button class="btn btn-primary" onclick="createHost()">Create</button></div>
       </div>
-      <p class="hint" style="margin-top:4px">Slug becomes part of the public URL: <code>/?host=&lt;slug&gt;</code>. Auto-generated from name if you leave it empty.</p>
+      <p class="hint" style="margin-top:4px">Slug becomes part of the public URL: <code>/?host=&lt;slug&gt;</code>. Auto-fills from name as you type.</p>
       <div id="newHostStatus" class="status-line"></div>
     </div>
-
     <div class="card">
       <h2>Hosts</h2>
       <div class="table-wrap">
         <table class="table">
-          <thead><tr><th>Name</th><th>Slug</th><th>Schedules</th><th></th></tr></thead>
+          <thead><tr><th>Name</th><th>Slug</th><th>Divisions</th><th></th></tr></thead>
           <tbody id="hostsBody"><tr><td colspan="4" class="hint">Loading&hellip;</td></tr></tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- View 2: host detail (schedules) -->
-  <div id="hostDetailView" class="hidden">
-    <a class="crumb" onclick="goHosts()">← All hosts</a>
-    <div class="card">
-      <h2 id="hostDetailTitle">Host</h2>
-      <div class="row">
-        <div style="flex:2"><label for="editHostName">Name</label><input type="text" id="editHostName"></div>
-        <div style="flex:2"><label for="editHostSlug">Slug</label><input type="text" id="editHostSlug"></div>
-        <div style="flex:0 0 auto;display:flex;gap:6px;align-items:flex-end">
-          <button class="btn btn-outline" onclick="saveHost()">Save</button>
-          <button class="btn btn-danger" onclick="askDeleteHost()">Delete host</button>
-        </div>
-      </div>
-      <div id="editHostStatus" class="status-line"></div>
-      <p class="hint" style="margin-top:6px">Public URL: <a id="hostPublicUrl" target="_blank" rel="noopener"></a></p>
-    </div>
-
-    <div class="card">
-      <h2>Upload schedule PDF</h2>
-      <div class="row">
-        <div style="flex:2"><label for="uploadLabel">Label (optional)</label><input type="text" id="uploadLabel" placeholder="Summer 2026 — Monday 6:30pm 8-Ball"></div>
-        <div style="flex:2"><label for="uploadFile">PDF</label><input type="file" id="uploadFile" accept="application/pdf"></div>
-        <div style="flex:0 0 auto"><button class="btn btn-primary" id="uploadBtn" onclick="uploadSchedule()">Upload</button></div>
-      </div>
-      <div id="uploadStatus" class="status-line"></div>
-      <p class="hint" style="margin-top:4px">If no label is given, the filename (without <code>.pdf</code>) is shown.</p>
-    </div>
-
-    <div class="card">
-      <h2>Schedules</h2>
-      <div class="table-wrap">
-        <table class="table">
-          <thead><tr><th>Label</th><th>Uploaded</th><th></th></tr></thead>
-          <tbody id="schedBody"><tr><td colspan="3" class="hint">Loading&hellip;</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -215,8 +272,60 @@
   </div>
 </div>
 
+<!-- Edit host modal -->
+<div class="modal" id="editHostModal">
+  <div class="modal-box">
+    <div class="modal-title">Edit host</div>
+    <div class="row">
+      <div style="flex:2"><label>Name</label><input type="text" id="ehName"></div>
+      <div style="flex:2"><label>Slug</label><input type="text" id="ehSlug"></div>
+    </div>
+    <div id="ehStatus" class="status-line"></div>
+    <p class="hint" style="margin-top:6px">Public URL: <a id="ehPublicUrl" target="_blank" rel="noopener"></a></p>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeEditHost()">Cancel</button>
+      <button class="btn btn-danger" onclick="askDeleteHostFromModal()">Delete host</button>
+      <button class="btn btn-primary" onclick="saveEditHost()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit division modal -->
+<div class="modal" id="editDivModal">
+  <div class="modal-box">
+    <div class="modal-title">Edit division</div>
+    <div class="row">
+      <div style="flex:1"><label>Number</label><input type="text" id="edNumber"></div>
+      <div style="flex:2"><label>Name</label><input type="text" id="edName"></div>
+    </div>
+    <div class="row">
+      <div><label>Day of play</label><input type="text" id="edDay"></div>
+      <div><label>Start time</label><input type="text" id="edStart"></div>
+    </div>
+    <div id="edStatus" class="status-line"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeEditDiv()">Cancel</button>
+      <button class="btn btn-danger" onclick="askDeleteDivFromModal()">Delete division</button>
+      <button class="btn btn-primary" onclick="saveEditDiv()">Save</button>
+    </div>
+  </div>
+</div>
+
 <script>
 document.write('<script src="version.js?_=' + Date.now() + '"><\/script>');
+</script>
+<script type="module">
+  // pdf.js v4 ESM build — loads when needed
+  let _pdfjs = null;
+  async function ensurePdfJs() {
+    if (_pdfjs) return _pdfjs;
+    _pdfjs = await import('https://cdn.jsdelivr.net/npm/pdfjs-dist@4.7.76/build/pdf.min.mjs');
+    _pdfjs.GlobalWorkerOptions.workerSrc =
+      'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.7.76/build/pdf.worker.min.mjs';
+    window._pdfjsLib = _pdfjs;
+    return _pdfjs;
+  }
+  window.ensurePdfJs = ensurePdfJs;
 </script>
 <script>
 const APP_NAME = 'RackTime';
@@ -235,26 +344,21 @@ const HEADERS_WRITE = { ...HEADERS_READ, 'Content-Type': 'application/json', 'Co
 const HEADERS_APA   = { apikey: SB_ANON, Authorization: 'Bearer ' + SB_ANON, 'Accept-Profile': 'apa_core' };
 
 let _hosts = [];
-let _schedules = [];
+let _divisions = [];
+let _hostDivisions = [];        // [{ host_id, division_id }]
 let _versionMismatch = false;
-let _activeHostId = null;
+
+let _previews = [];             // { id, file, status, division?, hosts?, error? }
+let _newHostSlugAutoFollow = true;
 
 /* ── Util ─────────────────────────────────── */
 function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
 function slugify(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').substring(0, 64); }
-function setStatus(id, msg, kind) {
-  const el = document.getElementById(id);
-  el.className = 'status-line shown ' + (kind || '');
-  el.textContent = msg;
-}
-function hideStatus(id) {
-  const el = document.getElementById(id);
-  el.className = 'status-line'; el.textContent = '';
-}
+function setStatus(id, msg, kind) { const el = document.getElementById(id); el.className = 'status-line shown ' + (kind || ''); el.textContent = msg; }
+function hideStatus(id) { const el = document.getElementById(id); el.className = 'status-line'; el.textContent = ''; }
 function fmtDate(ts) { if (!ts) return ''; return new Date(ts).toLocaleString(); }
-function publicHostUrl(slug) {
-  return location.origin + location.pathname.replace(/admin\.html.*$/, '') + '?host=' + encodeURIComponent(slug);
-}
+function publicHostUrl(slug) { return location.origin + location.pathname.replace(/admin\.html.*$/, '') + '?host=' + encodeURIComponent(slug); }
+function normalizeKey(s) { return String(s || '').trim().toLowerCase().replace(/\s+/g, ' '); }
 
 /* ── Auto-update ──────────────────────────── */
 async function checkVersion() {
@@ -293,17 +397,24 @@ async function sb(method, path, body, extra) {
   return r.json();
 }
 async function loadAll() {
-  _hosts     = await sb('GET', 'hosts?order=name.asc');
-  _schedules = await sb('GET', 'schedules?order=created_at.desc');
-  _hosts = _hosts || [];
-  _schedules = _schedules || [];
+  _hosts          = await sb('GET', 'hosts?order=name.asc') || [];
+  _divisions      = await sb('GET', 'divisions?order=number.asc') || [];
+  _hostDivisions  = await sb('GET', 'host_divisions?select=host_id,division_id') || [];
 }
 
 /* ── Storage helpers ──────────────────────── */
-async function storageUpload(path, blob, contentType) {
-  const r = await fetch(SB_URL + '/storage/v1/object/' + BUCKET + '/' + path.split('/').map(encodeURIComponent).join('/'), {
-    method: 'POST',
-    headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY, 'Content-Type': contentType || 'application/octet-stream', 'Cache-Control': 'public, max-age=31536000' },
+async function storageUpload(path, blob, contentType, opts) {
+  const upsert = opts && opts.upsert;
+  const url = SB_URL + '/storage/v1/object/' + BUCKET + '/' + path.split('/').map(encodeURIComponent).join('/');
+  const r = await fetch(url, {
+    method: upsert ? 'PUT' : 'POST',
+    headers: {
+      apikey: SB_KEY,
+      Authorization: 'Bearer ' + SB_KEY,
+      'Content-Type': contentType || 'application/octet-stream',
+      'Cache-Control': 'public, max-age=31536000',
+      ...(upsert ? { 'x-upsert': 'true' } : {})
+    },
     body: blob
   });
   if (!r.ok) throw new Error('Upload failed: ' + (await r.text()).substring(0, 200));
@@ -316,7 +427,459 @@ async function storageDelete(path) {
   });
 }
 
-/* ── Hosts view ───────────────────────────── */
+/* ════════════════════════════════════════════════════════════════════════
+   PDF PARSING — extract division number/name + venue names
+   ════════════════════════════════════════════════════════════════════════ */
+async function parsePdf(file) {
+  const lib = await window.ensurePdfJs();
+  const data = await file.arrayBuffer();
+  const pdf = await lib.getDocument({ data }).promise;
+  const page = await pdf.getPage(1);
+  const tc = await page.getTextContent();
+
+  const items = tc.items
+    .filter(it => it && it.str != null)
+    .map(it => ({
+      x: it.transform[4],
+      y: Math.round(it.transform[5]),
+      str: it.str,
+      width: it.width || 0
+    }));
+
+  // Group into rows by Y (PDF y origin is bottom-left; higher Y = nearer top)
+  const rowsByY = new Map();
+  for (const it of items) {
+    if (!rowsByY.has(it.y)) rowsByY.set(it.y, []);
+    rowsByY.get(it.y).push(it);
+  }
+  const yKeys = [...rowsByY.keys()].sort((a, b) => b - a);
+
+  // ── Header: find a line matching "NNN - Name" or "NNN — Name"
+  let divNumber = null, divName = null;
+  for (const y of yKeys) {
+    const row = rowsByY.get(y).sort((a, b) => a.x - b.x);
+    const text = row.map(r => r.str).join(' ').replace(/\s+/g, ' ').trim();
+    const m = text.match(/^(\d{3,4})\s*[-–—]\s*(.+)$/);
+    if (m) { divNumber = m[1]; divName = m[2].trim(); break; }
+  }
+
+  // ── Day / start time (anywhere on page)
+  let dayOfPlay = null, startTime = null;
+  for (const y of yKeys) {
+    const text = rowsByY.get(y).sort((a, b) => a.x - b.x).map(r => r.str).join(' ').replace(/\s+/g, ' ').trim();
+    const md = text.match(/Day of Play:\s*(\w+)/i);
+    if (md && !dayOfPlay) dayOfPlay = md[1];
+    const mt = text.match(/Start Time:\s*([\d:]+\s*[apAP][mM])/i);
+    if (mt && !startTime) startTime = mt[1].trim();
+  }
+
+  // ── Team rows: each starts with a 4-5 digit team number
+  const teamRows = [];
+  for (const y of yKeys) {
+    const row = rowsByY.get(y).sort((a, b) => a.x - b.x);
+    if (!row.length) continue;
+    const first = row[0].str.trim();
+    if (/^\d{4,5}$/.test(first)) teamRows.push(row);
+  }
+
+  // Determine column start X coordinates from the first team row.
+  // Each x-gap > 8 user-space units starts a new column.
+  let columnXs = [];
+  if (teamRows.length) {
+    const first = teamRows[0];
+    let prevEnd = -Infinity;
+    for (const it of first) {
+      if (it.x - prevEnd > 8) columnXs.push(it.x);
+      prevEnd = it.x + (it.width || 0);
+    }
+  }
+
+  // Venue is the 3rd column (index 2). Filter each team row's items by X.
+  const venues = new Set();
+  if (columnXs.length >= 3) {
+    const venueStart = columnXs[2] - 2;
+    const venueEnd   = (columnXs[3] || Infinity) - 2;
+    for (const row of teamRows) {
+      const chunk = row
+        .filter(it => it.x >= venueStart && it.x < venueEnd)
+        .sort((a, b) => a.x - b.x)
+        .map(it => it.str)
+        .join('')
+        .replace(/\s+/g, ' ')
+        .trim();
+      if (chunk) venues.add(chunk);
+    }
+  }
+
+  return {
+    division: divNumber ? { number: divNumber, name: divName, day_of_play: dayOfPlay, start_time: startTime } : null,
+    venues: [...venues].sort()
+  };
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   UPLOAD TAB — file picker, parsing, preview, save
+   ════════════════════════════════════════════════════════════════════════ */
+function wireUpload() {
+  const dz = document.getElementById('dropZone');
+  const picker = document.getElementById('pdfPicker');
+  picker.addEventListener('change', (ev) => {
+    queueFiles(ev.target.files);
+    picker.value = '';
+  });
+  ['dragenter','dragover'].forEach(ev => dz.addEventListener(ev, e => {
+    e.preventDefault(); dz.classList.add('dragover');
+  }));
+  ['dragleave','drop'].forEach(ev => dz.addEventListener(ev, e => {
+    e.preventDefault(); dz.classList.remove('dragover');
+  }));
+  dz.addEventListener('drop', (e) => {
+    e.preventDefault();
+    const files = e.dataTransfer && e.dataTransfer.files;
+    if (files && files.length) queueFiles(files);
+  });
+}
+
+function queueFiles(fileList) {
+  for (const file of fileList) {
+    if (!/\.pdf$/i.test(file.name)) continue;
+    const entry = {
+      id: 'pv-' + Math.random().toString(36).slice(2, 9),
+      file,
+      status: 'parsing',
+      division: null,
+      hosts: [],     // [{ name, kind: 'existing'|'new', host_id? }]
+      error: null
+    };
+    _previews.push(entry);
+    renderPreview(entry, /*append=*/true);
+    runParseForEntry(entry);
+  }
+  updateSaveAllState();
+}
+
+async function runParseForEntry(entry) {
+  try {
+    const parsed = await parsePdf(entry.file);
+    if (!parsed.division || !parsed.division.number) {
+      throw new Error("Couldn't find a division number/name in the header.");
+    }
+    entry.division = parsed.division;
+    // Map parsed venue names against existing hosts (case-insensitive on normalized name)
+    const existingByKey = new Map(_hosts.map(h => [normalizeKey(h.name), h]));
+    entry.hosts = parsed.venues.map(name => {
+      const existing = existingByKey.get(normalizeKey(name));
+      return existing
+        ? { name: existing.name, kind: 'existing', host_id: existing.id }
+        : { name, kind: 'new' };
+    });
+    entry.status = 'ready';
+  } catch (e) {
+    entry.status = 'error';
+    entry.error = e.message || String(e);
+  }
+  renderPreview(entry, /*append=*/false);
+  updateSaveAllState();
+}
+
+function renderPreview(entry, append) {
+  const list = document.getElementById('previewList');
+  const existing = document.getElementById(entry.id);
+  const html = previewHtml(entry);
+  if (existing) {
+    existing.outerHTML = html;
+  } else if (append) {
+    list.insertAdjacentHTML('beforeend', html);
+  } else {
+    list.insertAdjacentHTML('beforeend', html);
+  }
+  wirePreviewHandlers(entry.id);
+}
+
+function previewHtml(e) {
+  const d = e.division;
+  const hostsHtml = (e.hosts || []).map((h, idx) => '<span class="host-chip ' + h.kind + '" data-idx="' + idx + '">'
+    + esc(h.name)
+    + ' <span class="x" title="Remove" data-act="rmhost">×</span>'
+    + '</span>').join('');
+  const cls = 'pv ' + e.status;
+  const statusLabel = e.status === 'parsing' ? 'Parsing…'
+                    : e.status === 'ready' ? 'Ready'
+                    : e.status === 'saved' ? 'Saved'
+                    : 'Error';
+  let body = '';
+  if (e.status === 'error') {
+    body = '<div class="pv-error">' + esc(e.error || 'Unknown error') + '</div>';
+  } else {
+    body = '<div class="pv-row">'
+      + '<div class="pv-field"><label>Number</label><input type="text" data-fld="number" value="' + esc(d ? d.number : '') + '"></div>'
+      + '<div class="pv-field" style="flex:2"><label>Name</label><input type="text" data-fld="name" value="' + esc(d ? d.name : '') + '"></div>'
+      + '</div>'
+      + '<div class="pv-row">'
+      + '<div class="pv-field"><label>Day of play</label><input type="text" data-fld="day_of_play" value="' + esc(d && d.day_of_play || '') + '"></div>'
+      + '<div class="pv-field"><label>Start time</label><input type="text" data-fld="start_time" value="' + esc(d && d.start_time || '') + '"></div>'
+      + '</div>'
+      + '<div class="pv-row"><div class="pv-field" style="flex:1 1 100%;">'
+      +   '<label>Host venues found in team list</label>'
+      +   '<div class="pv-hosts" data-host-grid="1">' + (hostsHtml || '<span class="hint">None detected.</span>') + '</div>'
+      + '</div></div>';
+  }
+  return '<div class="pv ' + e.status + '" id="' + e.id + '">'
+    + '<div class="pv-head">'
+    +   '<div class="pv-filename">' + esc(e.file.name) + '</div>'
+    +   '<span class="pv-status ' + e.status + '">' + statusLabel + '</span>'
+    +   (e.status !== 'saved' ? '<button class="btn btn-outline btn-sm" data-act="remove">Remove</button>' : '')
+    + '</div>'
+    + body
+    + '</div>';
+}
+
+function wirePreviewHandlers(entryId) {
+  const root = document.getElementById(entryId);
+  if (!root) return;
+  const entry = _previews.find(p => p.id === entryId);
+  if (!entry) return;
+  // Field edits sync back into entry.division
+  root.querySelectorAll('input[data-fld]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      if (!entry.division) entry.division = {};
+      entry.division[inp.dataset.fld] = inp.value;
+      updateSaveAllState();
+    });
+  });
+  // Host chip remove
+  root.querySelectorAll('.host-chip .x[data-act="rmhost"]').forEach(x => {
+    x.addEventListener('click', () => {
+      const chip = x.closest('.host-chip');
+      const idx = parseInt(chip.dataset.idx, 10);
+      entry.hosts.splice(idx, 1);
+      renderPreview(entry, false);
+      updateSaveAllState();
+    });
+  });
+  // Remove this preview entry
+  const rm = root.querySelector('button[data-act="remove"]');
+  if (rm) rm.addEventListener('click', () => {
+    _previews = _previews.filter(p => p.id !== entryId);
+    root.remove();
+    updateSaveAllState();
+  });
+}
+
+function updateSaveAllState() {
+  const anyReady = _previews.some(p => p.status === 'ready');
+  document.getElementById('saveAllBtn').disabled = !anyReady;
+}
+
+function clearPreview() {
+  _previews = [];
+  document.getElementById('previewList').innerHTML = '';
+  hideStatus('uploadStatus');
+  updateSaveAllState();
+}
+
+async function saveAllUploads() {
+  const items = _previews.filter(p => p.status === 'ready');
+  if (!items.length) return;
+  const btn = document.getElementById('saveAllBtn');
+  btn.disabled = true;
+  setStatus('uploadStatus', 'Saving ' + items.length + ' PDF' + (items.length === 1 ? '' : 's') + '…', 'progress');
+  let ok = 0, fail = 0;
+  for (const e of items) {
+    try {
+      await saveOnePreview(e);
+      e.status = 'saved';
+      ok++;
+    } catch (err) {
+      e.status = 'error';
+      e.error = err.message || String(err);
+      fail++;
+    }
+    renderPreview(e, false);
+  }
+  // Refresh model state and tables
+  try { await loadAll(); } catch (_) {}
+  renderDivisions(); renderHostsList();
+  setStatus('uploadStatus',
+    fail === 0
+      ? ('Saved ' + ok + ' PDF' + (ok === 1 ? '' : 's') + '.')
+      : (ok + ' saved, ' + fail + ' failed — see error tiles above.'),
+    fail === 0 ? 'ok' : 'err');
+  btn.disabled = !_previews.some(p => p.status === 'ready');
+}
+
+async function saveOnePreview(entry) {
+  const d = entry.division || {};
+  const number = String(d.number || '').trim();
+  const name   = String(d.name   || '').trim();
+  if (!number || !name) throw new Error('Division number + name required.');
+
+  // 1. Upsert the division (match on number; insert if missing, update otherwise)
+  let division = _divisions.find(x => x.number === number);
+  const dayOfPlay = (d.day_of_play || '').trim() || null;
+  const startTime = (d.start_time  || '').trim() || null;
+
+  // Build storage path: <number>/<unix-ts>-<safe-filename>.pdf
+  const ts = Date.now();
+  const safeName = entry.file.name.replace(/[^a-zA-Z0-9._-]+/g, '-').toLowerCase();
+  const pdfPath = number + '/' + ts + '-' + safeName;
+
+  // Upload PDF to Storage first; if it fails, we don't pollute the DB
+  await storageUpload(pdfPath, entry.file, 'application/pdf');
+
+  if (division) {
+    // Update existing — clobber prior pdf_path; clean up the old object
+    const oldPath = division.pdf_path;
+    const patch = { name, day_of_play: dayOfPlay, start_time: startTime, pdf_path: pdfPath, updated_at: new Date().toISOString() };
+    const updated = await sb('PATCH', 'divisions?id=eq.' + division.id, patch);
+    division = (Array.isArray(updated) ? updated[0] : updated) || division;
+    if (oldPath && oldPath !== pdfPath) { try { await storageDelete(oldPath); } catch (_) {} }
+  } else {
+    const created = await sb('POST', 'divisions', {
+      number, name, day_of_play: dayOfPlay, start_time: startTime, pdf_path: pdfPath
+    });
+    division = Array.isArray(created) ? created[0] : created;
+    _divisions.push(division);
+  }
+
+  // 2. For each host venue: find existing (case-insensitive), or create.
+  for (const h of entry.hosts) {
+    let host = h.host_id ? _hosts.find(x => x.id === h.host_id) : null;
+    if (!host) {
+      const key = normalizeKey(h.name);
+      host = _hosts.find(x => normalizeKey(x.name) === key) || null;
+    }
+    if (!host) {
+      // Auto-create with auto-slug (collision-safe)
+      let baseSlug = slugify(h.name) || 'host';
+      let cand = baseSlug, n = 1;
+      while (_hosts.some(x => x.slug === cand)) { n++; cand = baseSlug + '-' + n; }
+      const created = await sb('POST', 'hosts', { name: h.name, slug: cand });
+      host = Array.isArray(created) ? created[0] : created;
+      _hosts.push(host);
+    }
+    // 3. Link host to division if not already
+    const alreadyLinked = _hostDivisions.some(x => x.host_id === host.id && x.division_id === division.id);
+    if (!alreadyLinked) {
+      await sb('POST', 'host_divisions', { host_id: host.id, division_id: division.id },
+        { Prefer: 'resolution=merge-duplicates,return=minimal' });
+      _hostDivisions.push({ host_id: host.id, division_id: division.id });
+    }
+  }
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   DIVISIONS TAB
+   ════════════════════════════════════════════════════════════════════════ */
+function renderDivisions() {
+  const body = document.getElementById('divisionsBody');
+  if (!_divisions.length) {
+    body.innerHTML = '<tr><td colspan="6" class="hint">No divisions yet — upload PDFs from the Upload tab.</td></tr>';
+    return;
+  }
+  const hostsByDiv = new Map();
+  for (const hd of _hostDivisions) {
+    if (!hostsByDiv.has(hd.division_id)) hostsByDiv.set(hd.division_id, []);
+    const h = _hosts.find(x => x.id === hd.host_id);
+    if (h) hostsByDiv.get(hd.division_id).push(h);
+  }
+  body.innerHTML = _divisions.map(d => {
+    const hs = (hostsByDiv.get(d.id) || []).sort((a,b) => a.name.localeCompare(b.name));
+    const dt = [d.day_of_play, d.start_time].filter(Boolean).join(' · ');
+    const pdfBtn = d.pdf_path
+      ? '<a class="btn btn-outline btn-sm" target="_blank" rel="noopener" href="' + esc(SB_URL + '/storage/v1/object/public/' + BUCKET + '/' + d.pdf_path.split('/').map(encodeURIComponent).join('/')) + '">Open</a>'
+      : '<span class="hint">none</span>';
+    return '<tr>'
+      + '<td><code>' + esc(d.number) + '</code></td>'
+      + '<td><strong>' + esc(d.name) + '</strong></td>'
+      + '<td>' + esc(dt || '—') + '</td>'
+      + '<td>' + (hs.length
+            ? hs.map(h => '<span class="host-chip existing">' + esc(h.name) + '</span>').join(' ')
+            : '<span class="hint">none</span>')
+        + '</td>'
+      + '<td>' + pdfBtn + '</td>'
+      + '<td><div class="actions">'
+      +   '<button class="btn btn-primary btn-sm" onclick="openEditDiv(' + d.id + ')">Edit</button>'
+      + '</div></td>'
+      + '</tr>';
+  }).join('');
+}
+
+let _editDivId = null;
+function openEditDiv(id) {
+  const d = _divisions.find(x => x.id === id);
+  if (!d) return;
+  _editDivId = id;
+  document.getElementById('edNumber').value = d.number;
+  document.getElementById('edName').value   = d.name;
+  document.getElementById('edDay').value    = d.day_of_play || '';
+  document.getElementById('edStart').value  = d.start_time || '';
+  hideStatus('edStatus');
+  document.getElementById('editDivModal').classList.add('shown');
+}
+function closeEditDiv() { document.getElementById('editDivModal').classList.remove('shown'); _editDivId = null; }
+async function saveEditDiv() {
+  if (_editDivId == null) return;
+  hideStatus('edStatus');
+  const number = document.getElementById('edNumber').value.trim();
+  const name   = document.getElementById('edName').value.trim();
+  const day    = document.getElementById('edDay').value.trim() || null;
+  const start  = document.getElementById('edStart').value.trim() || null;
+  if (!number || !name) return setStatus('edStatus', 'Number + name required.', 'err');
+  try {
+    await sb('PATCH', 'divisions?id=eq.' + _editDivId, {
+      number, name, day_of_play: day, start_time: start, updated_at: new Date().toISOString()
+    });
+    const d = _divisions.find(x => x.id === _editDivId);
+    if (d) { d.number = number; d.name = name; d.day_of_play = day; d.start_time = start; }
+    closeEditDiv();
+    renderDivisions();
+  } catch (e) {
+    const msg = String(e.message || '').toLowerCase();
+    if (msg.includes('duplicate') || msg.includes('unique') || msg.includes('23505')) {
+      setStatus('edStatus', 'That division number is already in use.', 'err');
+    } else {
+      setStatus('edStatus', 'Save failed: ' + e.message, 'err');
+    }
+  }
+}
+function askDeleteDivFromModal() {
+  const d = _divisions.find(x => x.id === _editDivId);
+  if (!d) return;
+  confirmModal({
+    title: 'Delete division?',
+    message: 'Removes "' + d.number + ' — ' + d.name + '", its PDF, and unlinks it from every host. Can’t be undone.',
+    okText: 'Delete',
+    onOk: async () => {
+      try {
+        if (d.pdf_path) { try { await storageDelete(d.pdf_path); } catch (_) {} }
+        await sb('DELETE', 'divisions?id=eq.' + d.id);
+        _divisions = _divisions.filter(x => x.id !== d.id);
+        _hostDivisions = _hostDivisions.filter(x => x.division_id !== d.id);
+        closeEditDiv();
+        renderDivisions(); renderHostsList();
+      } catch (e) { setStatus('edStatus', 'Delete failed: ' + e.message, 'err'); }
+    }
+  });
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   HOSTS TAB
+   ════════════════════════════════════════════════════════════════════════ */
+function wireSlugAutoFollow() {
+  const nameInput = document.getElementById('newHostName');
+  const slugInput = document.getElementById('newHostSlug');
+  if (!nameInput || !slugInput) return;
+  nameInput.addEventListener('input', () => {
+    if (_newHostSlugAutoFollow) slugInput.value = slugify(nameInput.value);
+  });
+  slugInput.addEventListener('input', () => {
+    _newHostSlugAutoFollow = (slugInput.value === '');
+  });
+  const onEnter = (ev) => { if (ev.key === 'Enter') { ev.preventDefault(); createHost(); } };
+  nameInput.addEventListener('keydown', onEnter);
+  slugInput.addEventListener('keydown', onEnter);
+}
 async function createHost() {
   hideStatus('newHostStatus');
   const name = document.getElementById('newHostName').value.trim();
@@ -332,7 +895,7 @@ async function createHost() {
     _hosts.sort((a, b) => a.name.localeCompare(b.name));
     document.getElementById('newHostName').value = '';
     document.getElementById('newHostSlug').value = '';
-    _newHostSlugAutoFollow = true;  // ready for the next host
+    _newHostSlugAutoFollow = true;
     setStatus('newHostStatus', 'Created.', 'ok');
     renderHostsList();
   } catch (e) {
@@ -342,192 +905,100 @@ async function createHost() {
 function renderHostsList() {
   const body = document.getElementById('hostsBody');
   if (!_hosts.length) {
-    body.innerHTML = '<tr><td colspan="4" class="hint">No hosts yet — create one above.</td></tr>';
+    body.innerHTML = '<tr><td colspan="4" class="hint">No hosts yet. Upload a PDF or add one manually above.</td></tr>';
     return;
   }
-  const countByHost = new Map();
-  for (const s of _schedules) countByHost.set(s.host_id, (countByHost.get(s.host_id) || 0) + 1);
-  body.innerHTML = _hosts.map(h => '<tr>'
-    + '<td><strong>' + esc(h.name) + '</strong></td>'
-    + '<td><code>' + esc(h.slug) + '</code></td>'
-    + '<td>' + (countByHost.get(h.id) || 0) + '</td>'
-    + '<td><div class="actions">'
-    +   '<a class="btn btn-outline btn-sm" target="_blank" rel="noopener" href="' + esc(publicHostUrl(h.slug)) + '">View</a>'
-    +   '<button class="btn btn-primary btn-sm" onclick="openHostDetail(' + h.id + ')">Manage</button>'
-    + '</div></td>'
-    + '</tr>').join('');
-}
-function goHosts() {
-  _activeHostId = null;
-  document.getElementById('hostsView').classList.remove('hidden');
-  document.getElementById('hostDetailView').classList.add('hidden');
-  document.getElementById('appSubpage').textContent = 'Hosts';
-  renderHostsList();
-}
-
-/* ── Host detail view ─────────────────────── */
-function openHostDetail(hostId) {
-  _activeHostId = hostId;
-  const h = _hosts.find(x => x.id === hostId);
-  if (!h) return;
-  document.getElementById('hostsView').classList.add('hidden');
-  document.getElementById('hostDetailView').classList.remove('hidden');
-  document.getElementById('appSubpage').textContent = h.name;
-  document.getElementById('hostDetailTitle').textContent = 'Host: ' + h.name;
-  document.getElementById('editHostName').value = h.name;
-  document.getElementById('editHostSlug').value = h.slug;
-  const url = publicHostUrl(h.slug);
-  const a = document.getElementById('hostPublicUrl');
-  a.textContent = url; a.href = url;
-  hideStatus('editHostStatus'); hideStatus('uploadStatus');
-  renderSchedulesForHost();
-}
-async function saveHost() {
-  hideStatus('editHostStatus');
-  if (_activeHostId == null) return;
-  const h = _hosts.find(x => x.id === _activeHostId);
-  const name = document.getElementById('editHostName').value.trim();
-  const slug = document.getElementById('editHostSlug').value.trim();
-  if (!name || !slug) return setStatus('editHostStatus', 'Name + slug required.', 'err');
-  if (!/^[a-z0-9][a-z0-9-]*$/.test(slug)) return setStatus('editHostStatus', 'Slug must be lowercase letters, digits, hyphens.', 'err');
-  if (slug !== h.slug && _hosts.some(x => x.slug === slug && x.id !== _activeHostId)) {
-    return setStatus('editHostStatus', 'Slug already in use.', 'err');
+  const divsByHost = new Map();
+  for (const hd of _hostDivisions) {
+    if (!divsByHost.has(hd.host_id)) divsByHost.set(hd.host_id, []);
+    const d = _divisions.find(x => x.id === hd.division_id);
+    if (d) divsByHost.get(hd.host_id).push(d);
   }
-  try {
-    await sb('PATCH', 'hosts?id=eq.' + _activeHostId, { name, slug, updated_at: new Date().toISOString() });
-    h.name = name; h.slug = slug;
-    _hosts.sort((a, b) => a.name.localeCompare(b.name));
-    setStatus('editHostStatus', 'Saved.', 'ok');
-    // Reflect updated URL
-    const url = publicHostUrl(slug);
-    const a = document.getElementById('hostPublicUrl');
-    a.textContent = url; a.href = url;
-    document.getElementById('hostDetailTitle').textContent = 'Host: ' + name;
-    document.getElementById('appSubpage').textContent = name;
-  } catch (e) {
-    const msg = String(e.message || '').toLowerCase();
-    if (msg.includes('duplicate') || msg.includes('unique') || msg.includes('23505')) {
-      setStatus('editHostStatus', 'That slug is already used by another host.', 'err');
-    } else {
-      setStatus('editHostStatus', 'Save failed: ' + e.message, 'err');
-    }
-  }
-}
-function askDeleteHost() {
-  const h = _hosts.find(x => x.id === _activeHostId);
-  if (!h) return;
-  const count = _schedules.filter(s => s.host_id === _activeHostId).length;
-  confirmModal({
-    title: 'Delete host?',
-    message: 'Removes "' + h.name + '" and all ' + count + ' of its schedule PDFs from Storage. Can’t be undone.',
-    okText: 'Delete host',
-    onOk: async () => {
-      try {
-        // Delete each PDF from Storage first
-        const items = _schedules.filter(s => s.host_id === _activeHostId);
-        for (const s of items) {
-          try { await storageDelete(s.pdf_path); } catch (_) {}
-        }
-        await sb('DELETE', 'hosts?id=eq.' + _activeHostId);
-        _hosts = _hosts.filter(x => x.id !== _activeHostId);
-        _schedules = _schedules.filter(s => s.host_id !== _activeHostId);
-        goHosts();
-      } catch (e) { setStatus('editHostStatus', 'Delete failed: ' + e.message, 'err'); }
-    }
-  });
-}
-
-/* ── Schedules (PDFs) ─────────────────────── */
-function renderSchedulesForHost() {
-  const body = document.getElementById('schedBody');
-  const items = _schedules.filter(s => s.host_id === _activeHostId)
-                          .sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
-  if (!items.length) {
-    body.innerHTML = '<tr><td colspan="3" class="hint">No PDFs uploaded yet.</td></tr>';
-    return;
-  }
-  body.innerHTML = items.map(s => {
-    const label = s.label || (s.pdf_path.split('/').pop() || '').replace(/\.pdf$/i, '');
-    const publicUrl = SB_URL + '/storage/v1/object/public/' + BUCKET + '/' + s.pdf_path.split('/').map(encodeURIComponent).join('/');
+  body.innerHTML = _hosts.map(h => {
+    const ds = (divsByHost.get(h.id) || []).sort((a, b) => a.number.localeCompare(b.number));
     return '<tr>'
-      + '<td><strong>' + esc(label) + '</strong>'
-      +   '<div class="hint" style="margin-top:2px">' + esc(s.pdf_path) + '</div>'
-      + '</td>'
-      + '<td>' + esc(fmtDate(s.created_at)) + '</td>'
+      + '<td><strong>' + esc(h.name) + '</strong></td>'
+      + '<td><code>' + esc(h.slug) + '</code></td>'
+      + '<td>' + (ds.length
+            ? ds.map(d => '<span class="host-chip existing">' + esc(d.number) + '</span>').join(' ')
+            : '<span class="hint">none</span>')
+        + '</td>'
       + '<td><div class="actions">'
-      +   '<a class="btn btn-outline btn-sm" target="_blank" rel="noopener" href="' + esc(publicUrl) + '">Open</a>'
-      +   '<button class="btn btn-outline btn-sm" onclick="renameSchedule(' + s.id + ')">Rename</button>'
-      +   '<button class="btn btn-danger btn-sm" onclick="askDeleteSchedule(' + s.id + ')">Delete</button>'
+      +   '<a class="btn btn-outline btn-sm" target="_blank" rel="noopener" href="' + esc(publicHostUrl(h.slug)) + '">View</a>'
+      +   '<button class="btn btn-primary btn-sm" onclick="openEditHost(' + h.id + ')">Edit</button>'
       + '</div></td>'
       + '</tr>';
   }).join('');
 }
-async function uploadSchedule() {
-  hideStatus('uploadStatus');
-  if (_activeHostId == null) return;
-  const h = _hosts.find(x => x.id === _activeHostId);
-  const fileInput = document.getElementById('uploadFile');
-  const label = document.getElementById('uploadLabel').value.trim();
-  const file = fileInput.files && fileInput.files[0];
-  if (!file) return setStatus('uploadStatus', 'Pick a PDF first.', 'err');
-  if (!/\.pdf$/i.test(file.name)) return setStatus('uploadStatus', 'File must be a .pdf.', 'err');
-  const btn = document.getElementById('uploadBtn');
-  btn.disabled = true;
-  setStatus('uploadStatus', 'Uploading…', 'progress');
-  // Build a collision-resistant path
-  const ts = Date.now();
-  const safeName = file.name.replace(/[^a-zA-Z0-9._-]+/g, '-').toLowerCase();
-  const path = h.slug + '/' + ts + '-' + safeName;
-  try {
-    await storageUpload(path, file, 'application/pdf');
-    const created = await sb('POST', 'schedules', {
-      host_id: _activeHostId,
-      label: label || null,
-      pdf_path: path
-    });
-    const row = Array.isArray(created) ? created[0] : created;
-    _schedules.unshift(row);
-    document.getElementById('uploadFile').value = '';
-    document.getElementById('uploadLabel').value = '';
-    setStatus('uploadStatus', 'Uploaded.', 'ok');
-    renderSchedulesForHost();
-    renderHostsList(); // count refresh
-  } catch (e) {
-    setStatus('uploadStatus', 'Failed: ' + e.message, 'err');
-  } finally { btn.disabled = false; }
+
+let _editHostId = null;
+function openEditHost(id) {
+  const h = _hosts.find(x => x.id === id);
+  if (!h) return;
+  _editHostId = id;
+  document.getElementById('ehName').value = h.name;
+  document.getElementById('ehSlug').value = h.slug;
+  const url = publicHostUrl(h.slug);
+  const a = document.getElementById('ehPublicUrl');
+  a.textContent = url; a.href = url;
+  hideStatus('ehStatus');
+  document.getElementById('editHostModal').classList.add('shown');
 }
-async function renameSchedule(id) {
-  const s = _schedules.find(x => x.id === id);
-  if (!s) return;
-  const next = prompt('New label (blank to use filename):', s.label || '');
-  if (next === null) return;
-  const newLabel = next.trim();
+function closeEditHost() { document.getElementById('editHostModal').classList.remove('shown'); _editHostId = null; }
+async function saveEditHost() {
+  if (_editHostId == null) return;
+  hideStatus('ehStatus');
+  const h = _hosts.find(x => x.id === _editHostId);
+  const name = document.getElementById('ehName').value.trim();
+  const slug = document.getElementById('ehSlug').value.trim();
+  if (!name || !slug) return setStatus('ehStatus', 'Name + slug required.', 'err');
+  if (!/^[a-z0-9][a-z0-9-]*$/.test(slug)) return setStatus('ehStatus', 'Slug must be lowercase letters, digits, hyphens.', 'err');
+  if (slug !== h.slug && _hosts.some(x => x.slug === slug && x.id !== _editHostId)) {
+    return setStatus('ehStatus', 'Slug already in use.', 'err');
+  }
   try {
-    await sb('PATCH', 'schedules?id=eq.' + id, { label: newLabel || null });
-    s.label = newLabel || null;
-    renderSchedulesForHost();
+    await sb('PATCH', 'hosts?id=eq.' + _editHostId, { name, slug, updated_at: new Date().toISOString() });
+    h.name = name; h.slug = slug;
+    _hosts.sort((a, b) => a.name.localeCompare(b.name));
+    closeEditHost();
+    renderHostsList();
   } catch (e) {
-    alert('Rename failed: ' + e.message);
+    const msg = String(e.message || '').toLowerCase();
+    if (msg.includes('duplicate') || msg.includes('unique') || msg.includes('23505')) {
+      setStatus('ehStatus', 'That slug is already used by another host.', 'err');
+    } else {
+      setStatus('ehStatus', 'Save failed: ' + e.message, 'err');
+    }
   }
 }
-function askDeleteSchedule(id) {
-  const s = _schedules.find(x => x.id === id);
-  if (!s) return;
-  const label = s.label || (s.pdf_path.split('/').pop() || '').replace(/\.pdf$/i, '');
+function askDeleteHostFromModal() {
+  const h = _hosts.find(x => x.id === _editHostId);
+  if (!h) return;
+  const dcount = _hostDivisions.filter(x => x.host_id === h.id).length;
   confirmModal({
-    title: 'Delete schedule?',
-    message: 'Removes "' + label + '" from this host (PDF file also deleted from Storage). Can’t be undone.',
+    title: 'Delete host?',
+    message: 'Removes "' + h.name + '" and unlinks it from ' + dcount + ' division(s). Can’t be undone.',
     okText: 'Delete',
     onOk: async () => {
       try {
-        try { await storageDelete(s.pdf_path); } catch (_) {}
-        await sb('DELETE', 'schedules?id=eq.' + id);
-        _schedules = _schedules.filter(x => x.id !== id);
-        renderSchedulesForHost();
-        renderHostsList();
-      } catch (e) { alert('Delete failed: ' + e.message); }
+        await sb('DELETE', 'hosts?id=eq.' + h.id);
+        _hosts = _hosts.filter(x => x.id !== h.id);
+        _hostDivisions = _hostDivisions.filter(x => x.host_id !== h.id);
+        closeEditHost();
+        renderHostsList(); renderDivisions();
+      } catch (e) { setStatus('ehStatus', 'Delete failed: ' + e.message, 'err'); }
     }
   });
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   TABS
+   ════════════════════════════════════════════════════════════════════════ */
+const TAB_LABEL = { upload: 'Upload', divisions: 'Divisions', hosts: 'Hosts' };
+function switchTab(name) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'tab-' + name));
+  document.getElementById('appSubpage').textContent = TAB_LABEL[name] || '';
 }
 
 /* ── Confirm modal ────────────────────────── */
@@ -544,31 +1015,6 @@ function closeConfirm(ok) {
   m.classList.remove('shown');
   if (ok && typeof m._onOk === 'function') m._onOk();
   m._onOk = null;
-}
-
-/* ── Slug auto-follow (new-host form only) ─────────────────
- *  As the admin types the Name, mirror it into Slug via slugify().
- *  If they manually edit Slug, stop following so their override
- *  is preserved. Clearing the Slug field resumes following.
- *  The edit-host form intentionally does NOT auto-follow — renaming
- *  the host shouldn't silently break existing bookmarks. */
-let _newHostSlugAutoFollow = true;
-function wireSlugAutoFollow() {
-  const nameInput = document.getElementById('newHostName');
-  const slugInput = document.getElementById('newHostSlug');
-  if (!nameInput || !slugInput) return;
-  nameInput.addEventListener('input', () => {
-    if (_newHostSlugAutoFollow) slugInput.value = slugify(nameInput.value);
-  });
-  slugInput.addEventListener('input', () => {
-    _newHostSlugAutoFollow = (slugInput.value === '');
-  });
-  // Enter on either field submits the form (matches the Create button).
-  const onEnter = (ev) => {
-    if (ev.key === 'Enter') { ev.preventDefault(); createHost(); }
-  };
-  nameInput.addEventListener('keydown', onEnter);
-  slugInput.addEventListener('keydown', onEnter);
 }
 
 /* ── Init ─────────────────────────────────── */
@@ -593,13 +1039,15 @@ async function init() {
     return;
   }
   document.getElementById('adminMain').classList.remove('hidden');
+  document.querySelectorAll('.tab').forEach(t => t.addEventListener('click', () => switchTab(t.dataset.tab)));
   wireSlugAutoFollow();
+  wireUpload();
   try { await loadAll(); }
   catch (e) {
-    setStatus('newHostStatus', 'Load failed: ' + e.message, 'err');
+    setStatus('uploadStatus', 'Load failed: ' + e.message, 'err');
     return;
   }
-  goHosts();
+  renderDivisions(); renderHostsList();
 }
 document.addEventListener('DOMContentLoaded', init);
 </script>
