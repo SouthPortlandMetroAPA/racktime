@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RackTime Admin</title>
+<style>
+  :root {
+    --spm-primary: #ea002a;
+    --spm-accent:  #0031a1;
+    --bg: #f3f3f3;
+    --card: #ffffff;
+    --text: #1a1a1a;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --border-strong: #d1d5db;
+    --success: #16a34a;
+    --warn: #f59e0b;
+    --danger: #dc2626;
+    --radius: 14px;
+    --pill: 999px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+  body { padding-bottom: 32px; }
+
+  .header {
+    background: linear-gradient(135deg, var(--spm-primary), var(--spm-accent));
+    color: #fff; padding: 16px 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    position: relative;
+  }
+  .header h1 { font-size: 1.3rem; font-weight: 900; }
+  .header h1 .subpage { font-size: 0.95rem; font-weight: 500; font-style: italic; opacity: 0.85; margin-left: 10px; }
+  .admin-badge {
+    position: absolute; top: 12px; right: 16px;
+    padding: 4px 12px; border-radius: var(--pill);
+    font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+    background: rgba(255,255,255,0.18); border: 1.5px solid rgba(255,255,255,0.5); color: #fff;
+  }
+
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 18px 16px 0; }
+
+  .crumb { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-weight: 600; cursor: pointer; font-size: 0.86rem; margin-bottom: 12px; }
+  .crumb:hover { color: var(--text); }
+
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    border: 1px solid var(--border);
+    margin-bottom: 14px;
+  }
+  .card h2 {
+    font-size: 0.78rem; font-weight: 800; color: var(--spm-accent);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    margin-bottom: 12px;
+  }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; margin-bottom: 8px; }
+  .row > * { flex: 1; min-width: 140px; }
+  label { display: block; font-size: 0.72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+  input[type="text"], input[type="file"], textarea {
+    width: 100%; border: 1.5px solid var(--border-strong); border-radius: 10px;
+    padding: 9px 11px; font-family: inherit; font-size: 0.9rem;
+    background: #fff;
+  }
+  input:focus, textarea:focus { outline: none; border-color: var(--spm-accent); }
+
+  .btn { padding: 9px 18px; border-radius: var(--pill); font-size: 0.85rem; font-weight: 700; border: 0; cursor: pointer; font-family: inherit; }
+  .btn-primary { background: var(--spm-accent); color: #fff; }
+  .btn-primary:hover:not(:disabled) { background: #0046cc; }
+  .btn-primary:disabled { background: #93c5fd; cursor: not-allowed; }
+  .btn-outline { background: #fff; border: 1.5px solid var(--border-strong); color: var(--text); }
+  .btn-outline:hover { background: #f5f5f5; }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-danger:hover { opacity: 0.92; }
+  .btn-sm { padding: 5px 12px; font-size: 0.76rem; }
+  .actions { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+
+  .table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+  .table th { text-align: left; padding: 9px 8px; border-bottom: 2px solid var(--border); color: var(--muted); font-weight: 700; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.06em; }
+  .table td { padding: 10px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .table tr:hover { background: #fafafa; }
+  .table-wrap { overflow-x: auto; }
+  code { background: #eef1f7; padding: 2px 6px; border-radius: 4px; font-size: 0.86em; color: var(--spm-accent); font-weight: 700; }
+
+  .status-line {
+    padding: 9px 13px; border-radius: 10px;
+    font-size: 0.84rem; font-weight: 600;
+    margin: 6px 0;
+    display: none;
+  }
+  .status-line.shown { display: block; }
+  .status-line.ok       { background: rgba(22,163,74,0.10); color: var(--success); }
+  .status-line.err      { background: rgba(220,38,38,0.10); color: var(--danger); }
+  .status-line.progress { background: rgba(0,49,161,0.10); color: var(--spm-accent); }
+
+  .key-gate { text-align: center; padding: 60px 20px; }
+  .key-gate .card { max-width: 440px; margin: 0 auto; text-align: center; }
+  .hint { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+
+  /* Modal */
+  .modal { position: fixed; inset: 0; background: rgba(10,20,40,0.6); z-index: 200; display: none; align-items: center; justify-content: center; padding: 16px; }
+  .modal.shown { display: flex; }
+  .modal-box { background: #fff; border-radius: var(--radius); max-width: 460px; width: 100%; max-height: 90vh; overflow-y: auto; padding: 22px; box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
+  .modal-title { font-size: 1.05rem; font-weight: 800; color: var(--spm-accent); margin-bottom: 12px; }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 16px; flex-wrap: wrap; }
+
+  .update-overlay { position: fixed; inset: 0; background: rgba(10,20,40,0.72); z-index: 9999; display: none; align-items: center; justify-content: center; padding: 24px; }
+  .update-overlay.shown { display: flex; }
+  .update-box { background: #fff; border-radius: var(--radius); padding: 32px; max-width: 380px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
+  .update-spinner { width: 48px; height: 48px; margin: 0 auto 16px; border-radius: 50%; border: 5px solid rgba(0,49,161,0.15); border-top-color: var(--spm-accent); animation: spin 0.85s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .update-title { font-size: 1.1rem; font-weight: 800; color: var(--spm-accent); margin-bottom: 6px; }
+
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="update-overlay" id="updateOverlay">
+  <div class="update-box">
+    <div class="update-spinner"></div>
+    <div class="update-title">Updating RackTime Admin</div>
+    <div>A new version is being deployed&hellip;</div>
+  </div>
+</div>
+
+<div class="header">
+  <div class="admin-badge">ADMIN</div>
+  <h1>RackTime <span class="subpage" id="appSubpage">Hosts</span></h1>
+</div>
+
+<div id="keyGate" class="key-gate hidden">
+  <div class="card">
+    <h2 id="keyGateTitle">Admin key required</h2>
+    <p class="hint" id="keyGateMsg">Append <code>?key=&lt;service_role&gt;</code> to the URL to enter.</p>
+  </div>
+</div>
+
+<div id="adminMain" class="wrap hidden">
+  <!-- View 1: hosts list -->
+  <div id="hostsView">
+    <div class="card">
+      <h2>New host</h2>
+      <div class="row">
+        <div style="flex:2"><label for="newHostName">Name</label><input type="text" id="newHostName" placeholder="89 Sports Bar &amp; Billiards"></div>
+        <div style="flex:2"><label for="newHostSlug">Slug</label><input type="text" id="newHostSlug" placeholder="89-sports-bar"></div>
+        <div style="flex:0 0 auto"><button class="btn btn-primary" onclick="createHost()">Create</button></div>
+      </div>
+      <p class="hint" style="margin-top:4px">Slug becomes part of the public URL: <code>/?host=&lt;slug&gt;</code>. Auto-generated from name if you leave it empty.</p>
+      <div id="newHostStatus" class="status-line"></div>
+    </div>
+
+    <div class="card">
+      <h2>Hosts</h2>
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>Name</th><th>Slug</th><th>Schedules</th><th></th></tr></thead>
+          <tbody id="hostsBody"><tr><td colspan="4" class="hint">Loading&hellip;</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- View 2: host detail (schedules) -->
+  <div id="hostDetailView" class="hidden">
+    <a class="crumb" onclick="goHosts()">← All hosts</a>
+    <div class="card">
+      <h2 id="hostDetailTitle">Host</h2>
+      <div class="row">
+        <div style="flex:2"><label for="editHostName">Name</label><input type="text" id="editHostName"></div>
+        <div style="flex:2"><label for="editHostSlug">Slug</label><input type="text" id="editHostSlug"></div>
+        <div style="flex:0 0 auto;display:flex;gap:6px;align-items:flex-end">
+          <button class="btn btn-outline" onclick="saveHost()">Save</button>
+          <button class="btn btn-danger" onclick="askDeleteHost()">Delete host</button>
+        </div>
+      </div>
+      <div id="editHostStatus" class="status-line"></div>
+      <p class="hint" style="margin-top:6px">Public URL: <a id="hostPublicUrl" target="_blank" rel="noopener"></a></p>
+    </div>
+
+    <div class="card">
+      <h2>Upload schedule PDF</h2>
+      <div class="row">
+        <div style="flex:2"><label for="uploadLabel">Label (optional)</label><input type="text" id="uploadLabel" placeholder="Summer 2026 — Monday 6:30pm 8-Ball"></div>
+        <div style="flex:2"><label for="uploadFile">PDF</label><input type="file" id="uploadFile" accept="application/pdf"></div>
+        <div style="flex:0 0 auto"><button class="btn btn-primary" id="uploadBtn" onclick="uploadSchedule()">Upload</button></div>
+      </div>
+      <div id="uploadStatus" class="status-line"></div>
+      <p class="hint" style="margin-top:4px">If no label is given, the filename (without <code>.pdf</code>) is shown.</p>
+    </div>
+
+    <div class="card">
+      <h2>Schedules</h2>
+      <div class="table-wrap">
+        <table class="table">
+          <thead><tr><th>Label</th><th>Uploaded</th><th></th></tr></thead>
+          <tbody id="schedBody"><tr><td colspan="3" class="hint">Loading&hellip;</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="confirmModal">
+  <div class="modal-box">
+    <div class="modal-title" id="confirmTitle">Confirm</div>
+    <div id="confirmMsg" style="font-size:0.92rem;color:var(--muted);line-height:1.5"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" onclick="closeConfirm(false)">Cancel</button>
+      <button class="btn btn-danger" id="confirmOkBtn" onclick="closeConfirm(true)">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script>
+document.write('<script src="version.js?_=' + Date.now() + '"><\/script>');
+</script>
+<script>
+const APP_NAME = 'RackTime';
+const SB_URL  = 'https://dqzbekoaysgaiqljueac.supabase.co';
+const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRxemJla29heXNnYWlxbGp1ZWFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUxNzA5NzgsImV4cCI6MjA5MDc0Njk3OH0.cCdGxZ4zEFzU_r6lWSDeoNWG67Q4MSYCAtpds035dfU';
+const SCHEMA = 'racktime';
+const BUCKET = 'racktime';
+
+const params = new URLSearchParams(location.search);
+const SB_KEY = params.get('key') || '';
+
+const HEADERS_READ  = SB_KEY
+  ? { apikey: SB_KEY,  Authorization: 'Bearer ' + SB_KEY,  'Accept-Profile': SCHEMA }
+  : { apikey: SB_ANON, Authorization: 'Bearer ' + SB_ANON, 'Accept-Profile': SCHEMA };
+const HEADERS_WRITE = { ...HEADERS_READ, 'Content-Type': 'application/json', 'Content-Profile': SCHEMA, Prefer: 'return=representation' };
+const HEADERS_APA   = { apikey: SB_ANON, Authorization: 'Bearer ' + SB_ANON, 'Accept-Profile': 'apa_core' };
+
+let _hosts = [];
+let _schedules = [];
+let _versionMismatch = false;
+let _activeHostId = null;
+
+/* ── Util ─────────────────────────────────── */
+function esc(s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
+function slugify(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').substring(0, 64); }
+function setStatus(id, msg, kind) {
+  const el = document.getElementById(id);
+  el.className = 'status-line shown ' + (kind || '');
+  el.textContent = msg;
+}
+function hideStatus(id) {
+  const el = document.getElementById(id);
+  el.className = 'status-line'; el.textContent = '';
+}
+function fmtDate(ts) { if (!ts) return ''; return new Date(ts).toLocaleString(); }
+function publicHostUrl(slug) {
+  return location.origin + location.pathname.replace(/admin\.html.*$/, '') + '?host=' + encodeURIComponent(slug);
+}
+
+/* ── Auto-update ──────────────────────────── */
+async function checkVersion() {
+  if (_versionMismatch) return;
+  try {
+    const r = await fetch(SB_URL + '/rest/v1/apps?app_name=eq.' + APP_NAME + '&select=version', { headers: HEADERS_APA });
+    if (!r.ok) return;
+    const d = await r.json();
+    if (d && d[0] && d[0].version && d[0].version !== window.APP_VERSION) {
+      _versionMismatch = true;
+      document.getElementById('updateOverlay').classList.add('shown');
+      pollForDeploy(d[0].version);
+    }
+  } catch (_) {}
+}
+function pollForDeploy(target) {
+  setTimeout(async () => {
+    try {
+      const r = await fetch('version.js?_=' + Date.now());
+      if (r.ok && (await r.text()).indexOf("APP_VERSION = '" + target + "'") !== -1) {
+        location.reload(true); return;
+      }
+    } catch (_) {}
+    pollForDeploy(target);
+  }, 3000);
+}
+
+/* ── Supabase ─────────────────────────────── */
+async function sb(method, path, body, extra) {
+  const opts = { method, headers: method === 'GET' ? { ...HEADERS_READ } : { ...HEADERS_WRITE } };
+  if (extra) opts.headers = { ...opts.headers, ...extra };
+  if (body !== undefined) opts.body = JSON.stringify(body);
+  const r = await fetch(SB_URL + '/rest/v1/' + path, opts);
+  if (!r.ok) throw new Error('Supabase ' + r.status + ': ' + (await r.text()).substring(0, 300));
+  if (r.status === 204) return null;
+  return r.json();
+}
+async function loadAll() {
+  _hosts     = await sb('GET', 'hosts?order=name.asc');
+  _schedules = await sb('GET', 'schedules?order=created_at.desc');
+  _hosts = _hosts || [];
+  _schedules = _schedules || [];
+}
+
+/* ── Storage helpers ──────────────────────── */
+async function storageUpload(path, blob, contentType) {
+  const r = await fetch(SB_URL + '/storage/v1/object/' + BUCKET + '/' + path.split('/').map(encodeURIComponent).join('/'), {
+    method: 'POST',
+    headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY, 'Content-Type': contentType || 'application/octet-stream', 'Cache-Control': 'public, max-age=31536000' },
+    body: blob
+  });
+  if (!r.ok) throw new Error('Upload failed: ' + (await r.text()).substring(0, 200));
+  return r.json();
+}
+async function storageDelete(path) {
+  await fetch(SB_URL + '/storage/v1/object/' + BUCKET + '/' + path.split('/').map(encodeURIComponent).join('/'), {
+    method: 'DELETE',
+    headers: { apikey: SB_KEY, Authorization: 'Bearer ' + SB_KEY }
+  });
+}
+
+/* ── Hosts view ───────────────────────────── */
+async function createHost() {
+  hideStatus('newHostStatus');
+  const name = document.getElementById('newHostName').value.trim();
+  let slug = document.getElementById('newHostSlug').value.trim();
+  if (!slug) slug = slugify(name);
+  if (!name) return setStatus('newHostStatus', 'Name required.', 'err');
+  if (!slug) return setStatus('newHostStatus', 'Could not derive slug from name.', 'err');
+  if (!/^[a-z0-9][a-z0-9-]*$/.test(slug)) return setStatus('newHostStatus', 'Slug must be lowercase letters, digits, hyphens.', 'err');
+  if (_hosts.some(h => h.slug === slug)) return setStatus('newHostStatus', 'Slug already in use.', 'err');
+  try {
+    const created = await sb('POST', 'hosts', { slug, name });
+    _hosts.push(Array.isArray(created) ? created[0] : created);
+    _hosts.sort((a, b) => a.name.localeCompare(b.name));
+    document.getElementById('newHostName').value = '';
+    document.getElementById('newHostSlug').value = '';
+    setStatus('newHostStatus', 'Created.', 'ok');
+    renderHostsList();
+  } catch (e) {
+    setStatus('newHostStatus', 'Failed: ' + e.message, 'err');
+  }
+}
+function renderHostsList() {
+  const body = document.getElementById('hostsBody');
+  if (!_hosts.length) {
+    body.innerHTML = '<tr><td colspan="4" class="hint">No hosts yet — create one above.</td></tr>';
+    return;
+  }
+  const countByHost = new Map();
+  for (const s of _schedules) countByHost.set(s.host_id, (countByHost.get(s.host_id) || 0) + 1);
+  body.innerHTML = _hosts.map(h => '<tr>'
+    + '<td><strong>' + esc(h.name) + '</strong></td>'
+    + '<td><code>' + esc(h.slug) + '</code></td>'
+    + '<td>' + (countByHost.get(h.id) || 0) + '</td>'
+    + '<td><div class="actions">'
+    +   '<a class="btn btn-outline btn-sm" target="_blank" rel="noopener" href="' + esc(publicHostUrl(h.slug)) + '">View</a>'
+    +   '<button class="btn btn-primary btn-sm" onclick="openHostDetail(' + h.id + ')">Manage</button>'
+    + '</div></td>'
+    + '</tr>').join('');
+}
+function goHosts() {
+  _activeHostId = null;
+  document.getElementById('hostsView').classList.remove('hidden');
+  document.getElementById('hostDetailView').classList.add('hidden');
+  document.getElementById('appSubpage').textContent = 'Hosts';
+  renderHostsList();
+}
+
+/* ── Host detail view ─────────────────────── */
+function openHostDetail(hostId) {
+  _activeHostId = hostId;
+  const h = _hosts.find(x => x.id === hostId);
+  if (!h) return;
+  document.getElementById('hostsView').classList.add('hidden');
+  document.getElementById('hostDetailView').classList.remove('hidden');
+  document.getElementById('appSubpage').textContent = h.name;
+  document.getElementById('hostDetailTitle').textContent = 'Host: ' + h.name;
+  document.getElementById('editHostName').value = h.name;
+  document.getElementById('editHostSlug').value = h.slug;
+  const url = publicHostUrl(h.slug);
+  const a = document.getElementById('hostPublicUrl');
+  a.textContent = url; a.href = url;
+  hideStatus('editHostStatus'); hideStatus('uploadStatus');
+  renderSchedulesForHost();
+}
+async function saveHost() {
+  hideStatus('editHostStatus');
+  if (_activeHostId == null) return;
+  const h = _hosts.find(x => x.id === _activeHostId);
+  const name = document.getElementById('editHostName').value.trim();
+  const slug = document.getElementById('editHostSlug').value.trim();
+  if (!name || !slug) return setStatus('editHostStatus', 'Name + slug required.', 'err');
+  if (!/^[a-z0-9][a-z0-9-]*$/.test(slug)) return setStatus('editHostStatus', 'Slug must be lowercase letters, digits, hyphens.', 'err');
+  if (slug !== h.slug && _hosts.some(x => x.slug === slug && x.id !== _activeHostId)) {
+    return setStatus('editHostStatus', 'Slug already in use.', 'err');
+  }
+  try {
+    await sb('PATCH', 'hosts?id=eq.' + _activeHostId, { name, slug, updated_at: new Date().toISOString() });
+    h.name = name; h.slug = slug;
+    _hosts.sort((a, b) => a.name.localeCompare(b.name));
+    setStatus('editHostStatus', 'Saved.', 'ok');
+    // Reflect updated URL
+    const url = publicHostUrl(slug);
+    const a = document.getElementById('hostPublicUrl');
+    a.textContent = url; a.href = url;
+    document.getElementById('hostDetailTitle').textContent = 'Host: ' + name;
+    document.getElementById('appSubpage').textContent = name;
+  } catch (e) {
+    const msg = String(e.message || '').toLowerCase();
+    if (msg.includes('duplicate') || msg.includes('unique') || msg.includes('23505')) {
+      setStatus('editHostStatus', 'That slug is already used by another host.', 'err');
+    } else {
+      setStatus('editHostStatus', 'Save failed: ' + e.message, 'err');
+    }
+  }
+}
+function askDeleteHost() {
+  const h = _hosts.find(x => x.id === _activeHostId);
+  if (!h) return;
+  const count = _schedules.filter(s => s.host_id === _activeHostId).length;
+  confirmModal({
+    title: 'Delete host?',
+    message: 'Removes "' + h.name + '" and all ' + count + ' of its schedule PDFs from Storage. Can’t be undone.',
+    okText: 'Delete host',
+    onOk: async () => {
+      try {
+        // Delete each PDF from Storage first
+        const items = _schedules.filter(s => s.host_id === _activeHostId);
+        for (const s of items) {
+          try { await storageDelete(s.pdf_path); } catch (_) {}
+        }
+        await sb('DELETE', 'hosts?id=eq.' + _activeHostId);
+        _hosts = _hosts.filter(x => x.id !== _activeHostId);
+        _schedules = _schedules.filter(s => s.host_id !== _activeHostId);
+        goHosts();
+      } catch (e) { setStatus('editHostStatus', 'Delete failed: ' + e.message, 'err'); }
+    }
+  });
+}
+
+/* ── Schedules (PDFs) ─────────────────────── */
+function renderSchedulesForHost() {
+  const body = document.getElementById('schedBody');
+  const items = _schedules.filter(s => s.host_id === _activeHostId)
+                          .sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
+  if (!items.length) {
+    body.innerHTML = '<tr><td colspan="3" class="hint">No PDFs uploaded yet.</td></tr>';
+    return;
+  }
+  body.innerHTML = items.map(s => {
+    const label = s.label || (s.pdf_path.split('/').pop() || '').replace(/\.pdf$/i, '');
+    const publicUrl = SB_URL + '/storage/v1/object/public/' + BUCKET + '/' + s.pdf_path.split('/').map(encodeURIComponent).join('/');
+    return '<tr>'
+      + '<td><strong>' + esc(label) + '</strong>'
+      +   '<div class="hint" style="margin-top:2px">' + esc(s.pdf_path) + '</div>'
+      + '</td>'
+      + '<td>' + esc(fmtDate(s.created_at)) + '</td>'
+      + '<td><div class="actions">'
+      +   '<a class="btn btn-outline btn-sm" target="_blank" rel="noopener" href="' + esc(publicUrl) + '">Open</a>'
+      +   '<button class="btn btn-outline btn-sm" onclick="renameSchedule(' + s.id + ')">Rename</button>'
+      +   '<button class="btn btn-danger btn-sm" onclick="askDeleteSchedule(' + s.id + ')">Delete</button>'
+      + '</div></td>'
+      + '</tr>';
+  }).join('');
+}
+async function uploadSchedule() {
+  hideStatus('uploadStatus');
+  if (_activeHostId == null) return;
+  const h = _hosts.find(x => x.id === _activeHostId);
+  const fileInput = document.getElementById('uploadFile');
+  const label = document.getElementById('uploadLabel').value.trim();
+  const file = fileInput.files && fileInput.files[0];
+  if (!file) return setStatus('uploadStatus', 'Pick a PDF first.', 'err');
+  if (!/\.pdf$/i.test(file.name)) return setStatus('uploadStatus', 'File must be a .pdf.', 'err');
+  const btn = document.getElementById('uploadBtn');
+  btn.disabled = true;
+  setStatus('uploadStatus', 'Uploading…', 'progress');
+  // Build a collision-resistant path
+  const ts = Date.now();
+  const safeName = file.name.replace(/[^a-zA-Z0-9._-]+/g, '-').toLowerCase();
+  const path = h.slug + '/' + ts + '-' + safeName;
+  try {
+    await storageUpload(path, file, 'application/pdf');
+    const created = await sb('POST', 'schedules', {
+      host_id: _activeHostId,
+      label: label || null,
+      pdf_path: path
+    });
+    const row = Array.isArray(created) ? created[0] : created;
+    _schedules.unshift(row);
+    document.getElementById('uploadFile').value = '';
+    document.getElementById('uploadLabel').value = '';
+    setStatus('uploadStatus', 'Uploaded.', 'ok');
+    renderSchedulesForHost();
+    renderHostsList(); // count refresh
+  } catch (e) {
+    setStatus('uploadStatus', 'Failed: ' + e.message, 'err');
+  } finally { btn.disabled = false; }
+}
+async function renameSchedule(id) {
+  const s = _schedules.find(x => x.id === id);
+  if (!s) return;
+  const next = prompt('New label (blank to use filename):', s.label || '');
+  if (next === null) return;
+  const newLabel = next.trim();
+  try {
+    await sb('PATCH', 'schedules?id=eq.' + id, { label: newLabel || null });
+    s.label = newLabel || null;
+    renderSchedulesForHost();
+  } catch (e) {
+    alert('Rename failed: ' + e.message);
+  }
+}
+function askDeleteSchedule(id) {
+  const s = _schedules.find(x => x.id === id);
+  if (!s) return;
+  const label = s.label || (s.pdf_path.split('/').pop() || '').replace(/\.pdf$/i, '');
+  confirmModal({
+    title: 'Delete schedule?',
+    message: 'Removes "' + label + '" from this host (PDF file also deleted from Storage). Can’t be undone.',
+    okText: 'Delete',
+    onOk: async () => {
+      try {
+        try { await storageDelete(s.pdf_path); } catch (_) {}
+        await sb('DELETE', 'schedules?id=eq.' + id);
+        _schedules = _schedules.filter(x => x.id !== id);
+        renderSchedulesForHost();
+        renderHostsList();
+      } catch (e) { alert('Delete failed: ' + e.message); }
+    }
+  });
+}
+
+/* ── Confirm modal ────────────────────────── */
+function confirmModal(opts) {
+  const m = document.getElementById('confirmModal');
+  document.getElementById('confirmTitle').textContent = opts.title || 'Confirm';
+  document.getElementById('confirmMsg').textContent = opts.message || '';
+  document.getElementById('confirmOkBtn').textContent = opts.okText || 'Confirm';
+  m._onOk = opts.onOk || null;
+  m.classList.add('shown');
+}
+function closeConfirm(ok) {
+  const m = document.getElementById('confirmModal');
+  m.classList.remove('shown');
+  if (ok && typeof m._onOk === 'function') m._onOk();
+  m._onOk = null;
+}
+
+/* ── Init ─────────────────────────────────── */
+async function init() {
+  document.title = 'RackTime Admin';
+  checkVersion();
+  setInterval(checkVersion, 30000);
+
+  if (!SB_KEY) {
+    document.getElementById('keyGate').classList.remove('hidden');
+    return;
+  }
+  // Validate the key
+  try {
+    const r = await fetch(SB_URL + '/rest/v1/hosts?select=id&limit=1', { headers: HEADERS_READ });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+  } catch (e) {
+    const g = document.getElementById('keyGate');
+    g.classList.remove('hidden');
+    document.getElementById('keyGateTitle').textContent = 'Access denied';
+    document.getElementById('keyGateMsg').innerHTML = '<strong style="color:var(--danger)">Admin key invalid or expired.</strong><br>Double-check <code>?key=</code>.';
+    return;
+  }
+  document.getElementById('adminMain').classList.remove('hidden');
+  try { await loadAll(); }
+  catch (e) {
+    setStatus('newHostStatus', 'Load failed: ' + e.message, 'err');
+    return;
+  }
+  goHosts();
+}
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
