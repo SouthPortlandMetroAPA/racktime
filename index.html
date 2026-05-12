@@ -239,7 +239,10 @@ function pollForDeploy(target) {
     try {
       const r = await fetch('version.js?_=' + Date.now());
       if (r.ok && (await r.text()).indexOf("APP_VERSION = '" + target + "'") !== -1) {
-        location.reload(true); return;
+        const u = new URL(location.href);
+        u.searchParams.set('_', String(Date.now()));
+        location.replace(u.toString());
+        return;
       }
     } catch (_) {}
     pollForDeploy(target);

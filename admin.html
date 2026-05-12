@@ -379,7 +379,12 @@ function pollForDeploy(target) {
     try {
       const r = await fetch('version.js?_=' + Date.now());
       if (r.ok && (await r.text()).indexOf("APP_VERSION = '" + target + "'") !== -1) {
-        location.reload(true); return;
+        // Force a fresh fetch of admin.html itself (GH Pages serves with
+        // max-age=600, so a plain reload may re-use the cached old HTML).
+        const u = new URL(location.href);
+        u.searchParams.set('_', String(Date.now()));
+        location.replace(u.toString());
+        return;
       }
     } catch (_) {}
     pollForDeploy(target);
@@ -394,7 +399,12 @@ async function sb(method, path, body, extra) {
   const r = await fetch(SB_URL + '/rest/v1/' + path, opts);
   if (!r.ok) throw new Error('Supabase ' + r.status + ': ' + (await r.text()).substring(0, 300));
   if (r.status === 204) return null;
-  return r.json();
+  // Prefer: return=minimal yields a 201 with an empty body — r.json() blows
+  // up on that. Guard against any empty/non-JSON response.
+  const ct = r.headers.get('Content-Type') || '';
+  if (!ct.includes('json')) return null;
+  const text = await r.text();
+  return text ? JSON.parse(text) : null;
 }
 async function loadAll() {
   _hosts          = await sb('GET', 'hosts?order=name.asc') || [];
