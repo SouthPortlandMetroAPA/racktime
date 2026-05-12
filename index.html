@@ -82,41 +82,45 @@
   .host-header h2 { font-size: 1.4rem; font-weight: 900; letter-spacing: -0.01em; }
   .host-header .sub { font-size: 0.82rem; color: var(--muted); margin-top: 2px; font-weight: 600; }
 
-  /* Division cards (on host page) */
+  /* Division cards (on host page) — day & time as primary,
+     division name secondary, number/format dropped to fine-print. */
   .divs { display: grid; gap: 10px; }
   .div-card {
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 14px 16px;
+    padding: 14px 18px;
     display: flex; align-items: center; gap: 12px;
     cursor: pointer;
     text-decoration: none; color: var(--text);
     transition: box-shadow 0.18s ease;
   }
   .div-card:hover { box-shadow: 0 4px 14px rgba(0,0,0,0.06); }
-  .div-num {
-    flex: 0 0 auto;
-    min-width: 42px;
-    padding: 6px 10px;
-    border-radius: 8px;
-    background: rgba(0,49,161,0.08);
-    color: var(--spm-accent);
-    font-weight: 800;
-    text-align: center;
-    font-variant-numeric: tabular-nums;
-  }
   .div-text { flex: 1; min-width: 0; }
-  .div-name { font-weight: 800; line-height: 1.35; word-break: break-word; }
-  .div-meta { font-size: 0.78rem; color: var(--muted); margin-top: 2px; font-weight: 600; }
+  .div-when {
+    font-size: 1.02rem; font-weight: 800;
+    color: var(--text); line-height: 1.3;
+    word-break: break-word;
+  }
+  .div-when .dot { color: var(--muted); margin: 0 6px; font-weight: 600; }
+  .div-when .tba { color: var(--muted); font-weight: 700; font-style: italic; }
+  .div-name {
+    font-size: 0.92rem; color: var(--muted); font-weight: 600;
+    margin-top: 3px; line-height: 1.35; word-break: break-word;
+  }
+  .div-name .num {
+    color: var(--spm-accent); font-weight: 700;
+    background: rgba(0,49,161,0.08);
+    padding: 1px 7px; border-radius: var(--pill);
+    margin-right: 6px;
+    font-variant-numeric: tabular-nums;
+    font-size: 0.74rem;
+  }
   .div-go {
     flex: 0 0 auto;
     width: 24px; height: 24px;
     display: flex; align-items: center; justify-content: center;
     color: var(--muted);
-  }
-  .div-card.no-pdf .div-num {
-    background: rgba(245,158,11,0.12); color: #b45309;
   }
   .div-no-pdf {
     font-size: 0.74rem; font-weight: 700;
@@ -124,6 +128,7 @@
     padding: 2px 8px;
     border-radius: var(--pill);
     background: rgba(245,158,11,0.12);
+    flex: 0 0 auto;
   }
 
   /* PDF viewer page */
@@ -329,31 +334,12 @@ function renderHost(root, slug) {
   document.title = 'RackTime — ' + h.name;
   document.getElementById('subline').textContent = h.name;
   const divIds = new Set(_hostDivisions.filter(hd => hd.host_id === h.id).map(hd => hd.division_id));
+  // v0.7: sort by day-of-week, then start time. Anything unparseable
+  // sinks to the bottom (still alphabetic by name as a tiebreaker).
   const divs = _divisions.filter(d => divIds.has(d.id))
-                         .sort((a, b) => a.number.localeCompare(b.number));
+                         .sort(divDayTimeCmp);
   const divsHtml = divs.length
-    ? '<div class="divs">' + divs.map(d => {
-        const hasPdf = !!d.pdf_path;
-        const dt = [d.day_of_play, d.start_time].filter(Boolean).join(' · ');
-        if (!hasPdf) {
-          return '<div class="div-card no-pdf" style="cursor:default">'
-            + '<div class="div-num">' + esc(d.number) + '</div>'
-            + '<div class="div-text">'
-            +   '<div class="div-name">' + esc(d.name) + '</div>'
-            +   '<div class="div-meta">' + esc(dt || '') + '</div>'
-            + '</div>'
-            + '<span class="div-no-pdf">No PDF yet</span>'
-            + '</div>';
-        }
-        return '<a class="div-card" onclick="event.preventDefault();goPdf(\'' + esc(slug) + '\',' + d.id + ')" href="?host=' + encodeURIComponent(slug) + '&div=' + d.id + '">'
-          + '<div class="div-num">' + esc(d.number) + '</div>'
-          + '<div class="div-text">'
-          +   '<div class="div-name">' + esc(d.name) + '</div>'
-          +   '<div class="div-meta">' + esc(dt || '') + '</div>'
-          + '</div>'
-          + '<div class="div-go">' + svgChevron() + '</div>'
-          + '</a>';
-      }).join('') + '</div>'
+    ? '<div class="divs">' + divs.map(d => divCardHtml(d, slug)).join('') + '</div>'
     : '<div class="empty"><span class="empty-emoji">\u{1F4C4}</span>'
       + '<div class="empty-title">No divisions yet</div>'
       + '<div class="empty-msg">This host hasn’t been linked to any divisions yet.</div></div>';
@@ -402,6 +388,56 @@ function renderPdf(root, slug, divId) {
 
 /* ── SVGs ──────────────────────────────────── */
 function svgChevron() { return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><polyline points="9 18 15 12 9 6"/></svg>'; }
+
+/* ── Division card layout + sort key (v0.7) ──────────────────
+ *  Sort by day-of-week (Mon..Sun), then start time.
+ *  Display: WHEN (bold, primary) / division name + #NNN (muted).
+ */
+const _DAY_IDX = { monday:0, tuesday:1, wednesday:2, thursday:3, friday:4, saturday:5, sunday:6 };
+function dayKey(d) {
+  const k = String(d || '').trim().toLowerCase();
+  return k in _DAY_IDX ? _DAY_IDX[k] : 99;
+}
+function timeToMin(t) {
+  if (!t) return 1e9;
+  const m = String(t).trim().match(/(\d{1,2}):(\d{2})\s*([ap])\.?\s*m\.?/i);
+  if (!m) return 1e9;
+  let h = parseInt(m[1], 10);
+  const min = parseInt(m[2], 10);
+  const isPm = m[3].toLowerCase() === 'p';
+  if (isPm && h !== 12) h += 12;
+  if (!isPm && h === 12) h = 0;
+  return h * 60 + min;
+}
+function divDayTimeCmp(a, b) {
+  return (dayKey(a.day_of_play) - dayKey(b.day_of_play))
+      || (timeToMin(a.start_time) - timeToMin(b.start_time))
+      || a.name.localeCompare(b.name);
+}
+function divCardHtml(d, slug) {
+  const hasPdf = !!d.pdf_path;
+  const day = d.day_of_play ? esc(d.day_of_play) : '';
+  const time = d.start_time ? esc(d.start_time) : '';
+  const whenInner = (day || time)
+    ? (day && time ? (day + '<span class="dot">·</span>' + time) : (day || time))
+    : '<span class="tba">Day &amp; time TBA</span>';
+  const numChip = '<span class="num">#' + esc(d.number) + '</span>';
+  const inner = ''
+    + '<div class="div-text">'
+    +   '<div class="div-when">' + whenInner + '</div>'
+    +   '<div class="div-name">' + numChip + esc(d.name) + '</div>'
+    + '</div>';
+  if (!hasPdf) {
+    return '<div class="div-card" style="cursor:default">'
+      + inner
+      + '<span class="div-no-pdf">No PDF yet</span>'
+      + '</div>';
+  }
+  return '<a class="div-card" onclick="event.preventDefault();goPdf(\'' + esc(slug) + '\',' + d.id + ')" href="?host=' + encodeURIComponent(slug) + '&div=' + d.id + '">'
+    + inner
+    + '<div class="div-go">' + svgChevron() + '</div>'
+    + '</a>';
+}
 
 /* ── Init ──────────────────────────────────── */
 async function init() {
