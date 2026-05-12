@@ -210,7 +210,7 @@
       <h2>Bulk upload division PDFs</h2>
       <p class="hint" style="margin-bottom:10px">Drop one or more APA division-schedule PDFs. Each is parsed for the division number/name (from the header) and the unique host venues (from the team list at the bottom). New divisions and hosts are auto-created; existing ones are matched and linked.</p>
       <div class="drop-zone" id="dropZone" onclick="document.getElementById('pdfPicker').click()">
-        <span class="dz-emoji">\u{1F4C4}</span>
+        <span class="dz-emoji">&#x1F4C4;</span>
         <div class="dz-title">Tap to choose PDFs or drop them here</div>
         <div class="dz-sub">Multiple at once is fine</div>
       </div>
@@ -483,28 +483,33 @@ async function parsePdf(file) {
   }
 
   // Determine column start X coordinates from the first team row.
-  // Each x-gap > 8 user-space units starts a new column.
+  // pdf.js reports inflated synthetic widths on whitespace-only "space" items
+  // (they cover the gap between visible columns at some weird scale, e.g.
+  // width=5479 on a single space). So END-based gap detection misfires.
+  // Filter to non-whitespace items and use START-to-START gaps instead.
   let columnXs = [];
   if (teamRows.length) {
-    const first = teamRows[0];
-    let prevEnd = -Infinity;
-    for (const it of first) {
-      if (it.x - prevEnd > 8) columnXs.push(it.x);
-      prevEnd = it.x + (it.width || 0);
+    const firstNoWS = teamRows[0].filter(it => it.str.trim().length > 0).sort((a, b) => a.x - b.x);
+    let prevX = -Infinity;
+    for (const it of firstNoWS) {
+      if (it.x - prevX > 15) columnXs.push(it.x);
+      prevX = it.x;
     }
   }
 
-  // Venue is the 3rd column (index 2). Filter each team row's items by X.
+  // Venue is the 3rd column (index 2). Filter each team row's items by X,
+  // skip whitespace-only items, and concatenate the venue chunk per row.
   const venues = new Set();
   if (columnXs.length >= 3) {
     const venueStart = columnXs[2] - 2;
     const venueEnd   = (columnXs[3] || Infinity) - 2;
     for (const row of teamRows) {
       const chunk = row
+        .filter(it => it.str.trim().length > 0)
         .filter(it => it.x >= venueStart && it.x < venueEnd)
         .sort((a, b) => a.x - b.x)
         .map(it => it.str)
-        .join('')
+        .join(' ')
         .replace(/\s+/g, ' ')
         .trim();
       if (chunk) venues.add(chunk);
